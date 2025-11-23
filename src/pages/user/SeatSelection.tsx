@@ -73,7 +73,9 @@ const SeatSelection = () => {
   const handleSeatSelect = (seatNumber: string) => {
     setSeats((prevSeats) =>
       prevSeats.map((seat) =>
-        seat.seatNumber === seatNumber ? { ...seat, isSelected: !seat.isSelected } : seat
+        seat.seatNumber === seatNumber 
+          ? { ...seat, isSelected: !seat.isSelected } 
+          : seat
       )
     );
   };

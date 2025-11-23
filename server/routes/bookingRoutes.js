@@ -4,13 +4,17 @@ import {
   getBooking,
   createBooking,
   updateBookingStatus,
-  cancelBooking
+  cancelBooking,
+  getBookedSeats
 } from '../controllers/bookingController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// All routes require authentication
+// Public route - get booked seats for a schedule
+router.get('/schedule/:scheduleId/seats', getBookedSeats);
+
+// All other routes require authentication
 router.use(authenticate);
 
 router.get('/', getAllBookings);
