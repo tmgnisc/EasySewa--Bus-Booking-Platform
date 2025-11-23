@@ -33,6 +33,10 @@ import OwnerBookings from "./pages/owner/OwnerBookings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageOwners from "./pages/admin/ManageOwners";
+import AdminManageBuses from "./pages/admin/ManageBuses";
+import AdminManageBookings from "./pages/admin/ManageBookings";
+import ManageBuses from "./pages/admin/ManageBuses";
+import ManageBookings from "./pages/admin/ManageBookings";
 
 const queryClient = new QueryClient();
 
@@ -71,8 +75,8 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<ManageUsers />} />
             <Route path="/admin/owners" element={<ManageOwners />} />
-            <Route path="/admin/buses" element={<AdminDashboard />} />
-            <Route path="/admin/bookings" element={<AdminDashboard />} />
+            <Route path="/admin/buses" element={<AdminManageBuses />} />
+            <Route path="/admin/bookings" element={<AdminManageBookings />} />
             <Route path="/admin/analytics" element={<AdminDashboard />} />
             <Route path="/admin/settings" element={<AdminDashboard />} />
             

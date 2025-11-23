@@ -1,32 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, Loader2, MapPin, Calendar, Clock, User, Bus } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency, formatDate, getStatusColor, downloadTicket } from '@/utils/helpers';
-import { MapPin, Calendar, Clock, Download, X } from 'lucide-react';
-import { toast } from 'sonner';
 import { api } from '@/lib/api';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { toast } from 'sonner';
+import { formatCurrency, formatDate, getStatusColor } from '@/utils/helpers';
 
-const BookingHistory = () => {
-  const { user, token } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+const ManageBookings = () => {
+  const { token } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
   const [bookings, setBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!token || !user) {
-        setIsLoading(false);
-        return;
-      }
+      if (!token) return;
 
       try {
-        setIsLoading(true);
         const response = await api.booking.getAll(token);
-        const userBookings = response.bookings || [];
-        setBookings(userBookings);
+        setBookings(response.bookings || []);
       } catch (error: any) {
         console.error('Error fetching bookings:', error);
         toast.error('Failed to load bookings');
@@ -36,49 +31,59 @@ const BookingHistory = () => {
     };
 
     fetchBookings();
-  }, [token, user]);
+  }, [token]);
 
-  const handleDownloadTicket = (booking: any) => {
-    try {
-      downloadTicket(booking);
-      toast.success('Ticket downloaded successfully');
-    } catch (error: any) {
-      console.error('Error downloading ticket:', error);
-      toast.error('Failed to download ticket');
-    }
-  };
-
-  const handleCancelBooking = (bookingId: string) => {
-    toast.success('Booking cancelled successfully');
-  };
+  const filteredBookings = bookings.filter(
+    (booking) =>
+      booking.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.bus?.busName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.schedule?.from?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.schedule?.to?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <LoadingSpinner size="lg" text="Loading your bookings..." />
+      <DashboardLayout requiredRole="admin">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout requiredRole="admin">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">My Bookings</h1>
-          <p className="text-muted-foreground mt-1">View and manage all your bus bookings</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">All Bookings</h1>
+            <p className="text-muted-foreground mt-1">
+              View and manage all bookings on the platform
+            </p>
+          </div>
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search bookings..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
-        {bookings.length > 0 ? (
-          <div className="space-y-4">
-            {bookings.map((booking) => {
+        {filteredBookings.length > 0 ? (
+          <div className="grid gap-4">
+            {filteredBookings.map((booking) => {
               const schedule = booking.schedule || {};
               const bus = booking.bus || {};
+              const user = booking.user || {};
               const seats = Array.isArray(booking.seats) 
                 ? booking.seats 
                 : typeof booking.seats === 'string' 
                 ? JSON.parse(booking.seats || '[]')
                 : [];
-              
+
               return (
                 <Card key={booking.id}>
                   <CardHeader>
@@ -101,6 +106,18 @@ const BookingHistory = () => {
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Passenger
+                        </p>
+                        <p className="font-medium">{user.name || 'N/A'}</p>
+                        <p className="text-xs text-muted-foreground">{user.email || 'N/A'}</p>
+                        {user.phone && (
+                          <p className="text-xs text-muted-foreground">{user.phone}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
                           <MapPin className="h-4 w-4" />
                           Route
                         </p>
@@ -112,18 +129,14 @@ const BookingHistory = () => {
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
-                          Date
-                        </p>
-                        <p className="font-medium">{formatDate(schedule.date || booking.date || booking.bookingDate)}</p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Time
+                          Date & Time
                         </p>
                         <p className="font-medium">
-                          {schedule.departureTime || booking.departureTime || 'N/A'} {schedule.arrivalTime ? `- ${schedule.arrivalTime}` : ''}
+                          {formatDate(schedule.date || booking.date || booking.bookingDate)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {schedule.departureTime || booking.departureTime || 'N/A'}
+                          {schedule.arrivalTime ? ` - ${schedule.arrivalTime}` : ''}
                         </p>
                       </div>
 
@@ -149,30 +162,19 @@ const BookingHistory = () => {
                         <p className="text-2xl font-bold text-primary">
                           {formatCurrency(booking.totalAmount || 0)}
                         </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Booking ID: {booking.id}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Booked on: {formatDate(booking.bookingDate || booking.createdAt)}
+                        </p>
                       </div>
 
-                      <div className="flex gap-2">
-                        {booking.status === 'confirmed' && booking.paymentStatus === 'paid' && (
-                          <>
-                            <Button onClick={() => handleDownloadTicket(booking)}>
-                              <Download className="mr-2 h-4 w-4" />
-                              Download Ticket
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleCancelBooking(booking.id)}
-                            >
-                              <X className="mr-2 h-4 w-4" />
-                              Cancel
-                            </Button>
-                          </>
-                        )}
-                        {booking.status === 'completed' && (
-                          <Button onClick={() => handleDownloadTicket(booking)}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download Receipt
-                          </Button>
-                        )}
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <Bus className="h-3 w-3" />
+                          {bus.busType || 'N/A'}
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -183,10 +185,7 @@ const BookingHistory = () => {
         ) : (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">No bookings found</p>
-              <p className="text-sm text-muted-foreground">
-                Start planning your next trip and book a bus
-              </p>
+              <p className="text-muted-foreground">No bookings found</p>
             </CardContent>
           </Card>
         )}
@@ -195,4 +194,5 @@ const BookingHistory = () => {
   );
 };
 
-export default BookingHistory;
+export default ManageBookings;
+
