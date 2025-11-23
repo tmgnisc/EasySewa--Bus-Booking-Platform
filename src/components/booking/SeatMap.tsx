@@ -1,7 +1,7 @@
 import { Seat } from '@/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { SteeringWheel } from 'lucide-react';
+import { Car } from 'lucide-react';
 
 interface SeatMapProps {
   seats: Seat[];
@@ -32,10 +32,10 @@ export const SeatMap = ({ seats, onSeatSelect }: SeatMapProps) => {
         </div>
       </div>
 
-      {/* Steering Wheel (Front of Bus) - Top Right */}
+      {/* Front of Bus Indicator - Top Right */}
       <div className="flex justify-end mb-4">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <SteeringWheel className="h-6 w-6" />
+          <Car className="h-6 w-6" />
           <span className="text-sm font-medium">Front</span>
         </div>
       </div>

@@ -18,7 +18,7 @@ export const getBookedSeats = async (req, res) => {
     });
 
     // Flatten all booked seats
-    const bookedSeats: string[] = [];
+    const bookedSeats = [];
     bookings.forEach(booking => {
       if (Array.isArray(booking.seats)) {
         bookedSeats.push(...booking.seats);
