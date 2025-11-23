@@ -3,6 +3,20 @@ import User from '../models/User.js';
 import Schedule from '../models/Schedule.js';
 import { uploadMultipleImages } from '../services/cloudinaryService.js';
 
+// Helper function to ensure images are always an array
+const normalizeImages = (images) => {
+  if (!images) return [];
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return Array.isArray(images) ? images : [];
+};
+
 // Get all buses
 export const getAllBuses = async (req, res) => {
   try {
@@ -15,7 +29,16 @@ export const getAllBuses = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    res.json({ buses });
+    // Normalize images for each bus
+    const normalizedBuses = buses.map(bus => ({
+      ...bus.toJSON(),
+      images: normalizeImages(bus.images),
+      amenities: typeof bus.amenities === 'string' 
+        ? JSON.parse(bus.amenities) 
+        : (bus.amenities || [])
+    }));
+
+    res.json({ buses: normalizedBuses });
   } catch (error) {
     console.error('Get all buses error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -41,7 +64,16 @@ export const getBusesByOwner = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    res.json({ buses });
+    // Normalize images for each bus
+    const normalizedBuses = buses.map(bus => ({
+      ...bus.toJSON(),
+      images: normalizeImages(bus.images),
+      amenities: typeof bus.amenities === 'string' 
+        ? JSON.parse(bus.amenities) 
+        : (bus.amenities || [])
+    }));
+
+    res.json({ buses: normalizedBuses });
   } catch (error) {
     console.error('Get buses by owner error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -73,7 +105,16 @@ export const getBus = async (req, res) => {
       return res.status(404).json({ message: 'Bus not found' });
     }
 
-    res.json({ bus });
+    // Normalize images and amenities
+    const normalizedBus = {
+      ...bus.toJSON(),
+      images: normalizeImages(bus.images),
+      amenities: typeof bus.amenities === 'string' 
+        ? JSON.parse(bus.amenities) 
+        : (bus.amenities || [])
+    };
+
+    res.json({ bus: normalizedBus });
   } catch (error) {
     console.error('Get bus error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

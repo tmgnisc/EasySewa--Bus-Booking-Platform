@@ -8,6 +8,7 @@ import { ArrowRight, CheckCircle, Shield, Clock, Star, Loader2 } from 'lucide-re
 import { dummyRoutes, dummyTestimonials } from '@/data/dummyData';
 import { Link } from 'react-router-dom';
 import { api } from '@/lib/api';
+import { parseAmenities, parseImages } from '@/utils/helpers';
 
 const Home = () => {
   const [buses, setBuses] = useState<any[]>([]);
@@ -125,19 +126,25 @@ const Home = () => {
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {buses.slice(0, 6).map((bus) => (
-                  <Card key={bus.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    {bus.images && bus.images.length > 0 ? (
-                      <div className="aspect-video overflow-hidden">
-                        <img
-                          src={bus.images[0]}
-                          alt={bus.busName}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20" />
-                    )}
+                {buses.slice(0, 6).map((bus) => {
+                  const imagesArray = parseImages(bus.images);
+                  return (
+                    <Card key={bus.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      {imagesArray.length > 0 ? (
+                        <div className="aspect-video overflow-hidden">
+                          <img
+                            src={imagesArray[0]}
+                            alt={bus.busName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.error('Image load error:', imagesArray[0]);
+                              e.currentTarget.src = 'https://via.placeholder.com/400x225?text=Image+Not+Found';
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20" />
+                      )}
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>
@@ -150,20 +157,23 @@ const Home = () => {
                         <Star className="h-4 w-4 fill-warning text-warning" />
                         <span className="text-sm font-medium">{bus.rating || '0.0'}</span>
                       </div>
-                      {bus.amenities && bus.amenities.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {bus.amenities.slice(0, 3).map((amenity: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {amenity}
-                            </Badge>
-                          ))}
-                          {bus.amenities.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{bus.amenities.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
-                      )}
+                      {(() => {
+                        const amenitiesArray = parseAmenities(bus.amenities);
+                        return amenitiesArray.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {amenitiesArray.slice(0, 3).map((amenity: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {amenity}
+                              </Badge>
+                            ))}
+                            {amenitiesArray.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{amenitiesArray.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        ) : null;
+                      })()}
                       <Link to="/search">
                         <Button variant="link" className="px-0 mt-2">
                           View Schedules <ArrowRight className="ml-1 h-4 w-4" />
@@ -171,7 +181,8 @@ const Home = () => {
                       </Link>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -197,7 +208,7 @@ const Home = () => {
                   <p className="text-sm text-muted-foreground">
                     {route.popularityScore}% travelers choose this route
                   </p>
-                  <Link to={`/search?from=${route.from}&to=${route.to}`}>
+                  <Link to={`/search?from=${route.from}&to=${route.to}&date=${new Date().toISOString().split('T')[0]}`}>
                     <Button variant="link" className="px-0 mt-2">
                       View Buses <ArrowRight className="ml-1 h-4 w-4" />
                     </Button>

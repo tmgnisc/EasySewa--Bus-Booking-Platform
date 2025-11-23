@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, MapPin, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,20 +11,33 @@ import { getTomorrowDate } from '@/utils/helpers';
 
 export const SearchWidget = () => {
   const navigate = useNavigate();
+  const [urlSearchParams] = useSearchParams();
   const [searchParams, setSearchParams] = useState({
-    from: '',
-    to: '',
-    date: getTomorrowDate(),
-    passengers: '1',
+    from: urlSearchParams.get('from') || '',
+    to: urlSearchParams.get('to') || '',
+    date: urlSearchParams.get('date') || getTomorrowDate(),
+    passengers: urlSearchParams.get('passengers') || '1',
   });
+
+  // Sync with URL params when they change
+  useEffect(() => {
+    setSearchParams({
+      from: urlSearchParams.get('from') || '',
+      to: urlSearchParams.get('to') || '',
+      date: urlSearchParams.get('date') || getTomorrowDate(),
+      passengers: urlSearchParams.get('passengers') || '1',
+    });
+  }, [urlSearchParams]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchParams.from && searchParams.to && searchParams.date) {
-      navigate(
-        `/search?from=${searchParams.from}&to=${searchParams.to}&date=${searchParams.date}&passengers=${searchParams.passengers}`
-      );
+    if (!searchParams.from || !searchParams.to || !searchParams.date) {
+      // Show validation message (you can use toast here)
+      return;
     }
+    navigate(
+      `/search?from=${encodeURIComponent(searchParams.from)}&to=${encodeURIComponent(searchParams.to)}&date=${searchParams.date}&passengers=${searchParams.passengers}`
+    );
   };
 
   return (

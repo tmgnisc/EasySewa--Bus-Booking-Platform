@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Schedule, Bus } from '@/types';
-import { formatCurrency } from '@/utils/helpers';
+import { formatCurrency, parseAmenities, parseImages } from '@/utils/helpers';
 
 interface BusCardProps {
   schedule: Schedule;
@@ -18,12 +18,28 @@ export const BusCard = ({ schedule, bus }: BusCardProps) => {
     navigate(`/bus/${schedule.id}`);
   };
 
+  // Normalize bus data
+  const imagesArray = parseImages(bus.images);
+  const amenitiesArray = parseAmenities(bus.amenities);
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Bus Info */}
           <div className="flex-1 space-y-3">
+            {imagesArray.length > 0 && (
+              <div className="aspect-video rounded-md overflow-hidden mb-3">
+                <img
+                  src={imagesArray[0]}
+                  alt={bus.busName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://via.placeholder.com/400x225?text=Bus+Image';
+                  }}
+                />
+              </div>
+            )}
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold">{bus.busName}</h3>
@@ -63,15 +79,22 @@ export const BusCard = ({ schedule, bus }: BusCardProps) => {
             </div>
 
             {/* Amenities */}
-            <div className="flex flex-wrap gap-2">
-              {bus.amenities.slice(0, 3).map((amenity) => (
-                <Badge key={amenity} variant="outline" className="text-xs">
-                  {amenity === 'WiFi' && <Wifi className="mr-1 h-3 w-3" />}
-                  {amenity === 'Charging Port' && <Zap className="mr-1 h-3 w-3" />}
-                  {amenity}
-                </Badge>
-              ))}
-            </div>
+            {amenitiesArray.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {amenitiesArray.slice(0, 3).map((amenity) => (
+                  <Badge key={amenity} variant="outline" className="text-xs">
+                    {amenity === 'WiFi' && <Wifi className="mr-1 h-3 w-3" />}
+                    {amenity === 'Charging Port' && <Zap className="mr-1 h-3 w-3" />}
+                    {amenity}
+                  </Badge>
+                ))}
+                {amenitiesArray.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{amenitiesArray.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Price & CTA */}

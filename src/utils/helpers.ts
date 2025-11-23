@@ -60,3 +60,49 @@ export const validatePhone = (phone: string): boolean => {
   const re = /^[+]?[\d\s-()]+$/;
   return re.test(phone) && phone.replace(/\D/g, '').length >= 10;
 };
+
+/**
+ * Safely parse amenities from bus data
+ * Handles string (JSON), array, or null/undefined values
+ */
+export const parseAmenities = (amenities: any): string[] => {
+  if (!amenities) return [];
+  
+  if (typeof amenities === 'string') {
+    try {
+      const parsed = JSON.parse(amenities);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  
+  if (Array.isArray(amenities)) {
+    return amenities;
+  }
+  
+  return [];
+};
+
+/**
+ * Safely parse images from bus data
+ * Handles string (JSON), array, or null/undefined values
+ */
+export const parseImages = (images: any): string[] => {
+  if (!images) return [];
+  
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  
+  if (Array.isArray(images)) {
+    return images;
+  }
+  
+  return [];
+};

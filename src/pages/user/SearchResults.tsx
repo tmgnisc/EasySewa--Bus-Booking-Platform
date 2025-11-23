@@ -8,13 +8,37 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { dummySchedules, dummyBuses } from '@/data/dummyData';
-import { formatCurrency } from '@/utils/helpers';
+import { formatCurrency, parseImages, parseAmenities } from '@/utils/helpers';
+import { api } from '@/lib/api';
 import { Filter } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface ScheduleWithBus {
+  id: string;
+  busId: string;
+  from: string;
+  to: string;
+  departureTime: string;
+  arrivalTime: string;
+  date: string;
+  price: number;
+  duration: string;
+  availableSeats: number;
+  bus: {
+    id: string;
+    busName: string;
+    busNumber: string;
+    busType: string;
+    rating: number;
+    amenities: any;
+    images: any;
+  };
+}
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
+  const [schedules, setSchedules] = useState<ScheduleWithBus[]>([]);
   const [priceRange, setPriceRange] = useState([0, 2000]);
   const [selectedBusTypes, setSelectedBusTypes] = useState<string[]>([]);
 
@@ -23,19 +47,54 @@ const SearchResults = () => {
   const date = searchParams.get('date') || '';
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setIsLoading(false), 800);
-  }, [searchParams]);
+    const fetchSchedules = async () => {
+      if (!from || !to || !date) {
+        setIsLoading(false);
+        return;
+      }
 
-  const filteredSchedules = dummySchedules.filter((schedule) => {
-    const matchesRoute = schedule.from === from && schedule.to === to;
-    const matchesDate = schedule.date === date;
-    const bus = dummyBuses.find((b) => b.id === schedule.busId);
+      setIsLoading(true);
+      try {
+        const response = await api.schedule.getAll({ from, to, date });
+        
+        // Normalize bus data in schedules
+        const normalizedSchedules = (response.schedules || []).map((schedule: any) => ({
+          ...schedule,
+          bus: schedule.bus ? {
+            ...schedule.bus,
+            images: parseImages(schedule.bus.images),
+            amenities: parseAmenities(schedule.bus.amenities),
+          } : null,
+        }));
+
+        setSchedules(normalizedSchedules);
+        
+        // Update price range based on available schedules
+        if (normalizedSchedules.length > 0) {
+          const prices = normalizedSchedules.map((s: ScheduleWithBus) => s.price);
+          const minPrice = Math.min(...prices);
+          const maxPrice = Math.max(...prices);
+          setPriceRange([Math.max(0, minPrice - 100), maxPrice + 100]);
+        }
+      } catch (error: any) {
+        console.error('Error fetching schedules:', error);
+        toast.error('Failed to load bus schedules');
+        setSchedules([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, [from, to, date]);
+
+  const filteredSchedules = schedules.filter((schedule) => {
     const matchesPrice = schedule.price >= priceRange[0] && schedule.price <= priceRange[1];
     const matchesBusType =
-      selectedBusTypes.length === 0 || (bus && selectedBusTypes.includes(bus.busType));
+      selectedBusTypes.length === 0 || 
+      (schedule.bus && selectedBusTypes.includes(schedule.bus.busType));
 
-    return matchesRoute && matchesDate && matchesPrice && matchesBusType;
+    return matchesPrice && matchesBusType;
   });
 
   const busTypes = ['AC', 'Non-AC', 'Sleeper', 'Semi-Sleeper'];
@@ -120,14 +179,16 @@ const SearchResults = () => {
             <div className="lg:col-span-3 space-y-4">
               {filteredSchedules.length > 0 ? (
                 filteredSchedules.map((schedule) => {
-                  const bus = dummyBuses.find((b) => b.id === schedule.busId)!;
-                  return <BusCard key={schedule.id} schedule={schedule} bus={bus} />;
+                  if (!schedule.bus) return null;
+                  return <BusCard key={schedule.id} schedule={schedule} bus={schedule.bus} />;
                 })
               ) : (
                 <Card>
                   <CardContent className="py-12 text-center">
                     <p className="text-muted-foreground mb-4">
-                      No buses found matching your criteria
+                      {schedules.length === 0 
+                        ? 'No buses found for this route and date'
+                        : 'No buses found matching your filter criteria'}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Try adjusting your filters or search for a different route

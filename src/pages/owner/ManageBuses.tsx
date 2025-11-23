@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
+import { parseAmenities, parseImages } from '@/utils/helpers';
 import { Plus, Edit, Trash2, Star, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -87,15 +88,22 @@ const ManageBuses = () => {
               <Card key={bus.id}>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    {bus.images && bus.images.length > 0 && (
-                      <div className="aspect-video rounded-md overflow-hidden mb-4">
-                        <img
-                          src={bus.images[0]}
-                          alt={bus.busName}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
+                    {(() => {
+                      const imagesArray = parseImages(bus.images);
+                      return imagesArray.length > 0 ? (
+                        <div className="aspect-video rounded-md overflow-hidden mb-4">
+                          <img
+                            src={imagesArray[0]}
+                            alt={bus.busName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              console.error('Image load error:', imagesArray[0]);
+                              e.currentTarget.src = 'https://via.placeholder.com/400x225?text=Image+Not+Found';
+                            }}
+                          />
+                        </div>
+                      ) : null;
+                    })()}
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="text-xl font-bold">{bus.busName}</h3>
@@ -118,18 +126,21 @@ const ManageBuses = () => {
                       </div>
                     </div>
 
-                    {bus.amenities && bus.amenities.length > 0 && (
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Amenities</p>
-                        <div className="flex flex-wrap gap-2">
-                          {bus.amenities.map((amenity: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {amenity}
-                            </Badge>
-                          ))}
+                    {(() => {
+                      const amenitiesArray = parseAmenities(bus.amenities);
+                      return amenitiesArray.length > 0 ? (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Amenities</p>
+                          <div className="flex flex-wrap gap-2">
+                            {amenitiesArray.map((amenity: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {amenity}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      ) : null;
+                    })()}
 
                     <div className="flex gap-2 pt-4 border-t">
                       <Button variant="outline" className="flex-1" disabled>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Shield, Bus, TrendingUp, DollarSign, Clock, Loader2, Eye } from 'lucide-react';
-import { formatCurrency } from '@/utils/helpers';
+import { formatCurrency, parseImages } from '@/utils/helpers';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
@@ -219,13 +219,24 @@ const AdminDashboard = () => {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div className="flex items-center gap-4">
-                      {bus.images && bus.images.length > 0 && (
-                        <img
-                          src={bus.images[0]}
-                          alt={bus.busName}
-                          className="w-16 h-16 object-cover rounded-md"
-                        />
-                      )}
+                      {(() => {
+                        const imagesArray = parseImages(bus.images);
+                        return imagesArray.length > 0 ? (
+                          <img
+                            src={imagesArray[0]}
+                            alt={bus.busName}
+                            className="w-16 h-16 object-cover rounded-md"
+                            onError={(e) => {
+                              console.error('Image load error:', imagesArray[0]);
+                              e.currentTarget.src = 'https://via.placeholder.com/64x64?text=No+Image';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                            <Bus className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        );
+                      })()}
                       <div>
                         <p className="font-medium">{bus.busName}</p>
                         <p className="text-sm text-muted-foreground">{bus.busNumber}</p>
