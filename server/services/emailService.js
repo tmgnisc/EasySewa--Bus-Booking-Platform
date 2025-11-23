@@ -198,3 +198,89 @@ export const sendOTPEmail = async (email, otp, name) => {
   }
 };
 
+// Send booking notification to bus owner
+export const sendBookingNotificationToOwner = async (ownerEmail, ownerName, booking) => {
+  const mailOptions = {
+    from: `"EasySewa" <${process.env.EMAIL_USER}>`,
+    to: ownerEmail,
+    subject: 'New Booking Received - EasySewa',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #0ea5e9, #f97316); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .booking-details { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
+          .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { font-weight: 600; color: #666; }
+          .detail-value { color: #333; }
+          .button { display: inline-block; padding: 12px 30px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>New Booking Received! 🎉</h1>
+          </div>
+          <div class="content">
+            <p>Hi ${ownerName},</p>
+            <p>You have received a new booking for your bus service.</p>
+            
+            <div class="booking-details">
+              <div class="detail-row">
+                <span class="detail-label">Passenger:</span>
+                <span class="detail-value">${booking.user?.name || booking.userName || 'N/A'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Bus:</span>
+                <span class="detail-value">${booking.bus?.busName || 'N/A'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Route:</span>
+                <span class="detail-value">${booking.schedule?.from || booking.from || 'N/A'} → ${booking.schedule?.to || booking.to || 'N/A'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Date & Time:</span>
+                <span class="detail-value">${booking.schedule?.date || booking.date || 'N/A'} • ${booking.schedule?.departureTime || booking.departureTime || 'N/A'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Seats:</span>
+                <span class="detail-value">${Array.isArray(booking.seats) ? booking.seats.join(', ') : booking.seats || 'N/A'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Total Amount:</span>
+                <span class="detail-value">₹${parseFloat(booking.totalAmount || 0).toFixed(2)}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Payment Status:</span>
+                <span class="detail-value">${booking.paymentStatus || 'pending'}</span>
+              </div>
+            </div>
+            
+            <p style="text-align: center;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/owner/bookings" class="button">View Booking Details</a>
+            </p>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} EasySewa. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Error sending booking notification email:', error);
+    return false;
+  }
+};
+
