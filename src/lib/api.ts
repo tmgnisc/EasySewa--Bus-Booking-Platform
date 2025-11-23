@@ -159,6 +159,11 @@ export const api = {
         method: 'GET',
         token,
       }),
+    getByBus: (busId: string, token?: string) =>
+      request<{ schedules: any[] }>(`/schedules/bus/${busId}`, {
+        method: 'GET',
+        token,
+      }),
     create: (data: any, token: string) =>
       request<{ message: string; schedule: any }>('/schedules', {
         method: 'POST',
@@ -174,6 +179,29 @@ export const api = {
     delete: (id: string, token: string) =>
       request<{ message: string }>(`/schedules/${id}`, {
         method: 'DELETE',
+        token,
+      }),
+  },
+  // Booking endpoints
+  booking: {
+    getBookedSeats: (scheduleId: string) =>
+      request<{ bookedSeats: string[] }>(`/bookings/schedule/${scheduleId}/seats`, {
+        method: 'GET',
+      }),
+    create: (data: { scheduleId: string; seats: string[] }, token: string) =>
+      request<{ message: string; booking: any }>('/bookings', {
+        method: 'POST',
+        token,
+        body: JSON.stringify(data),
+      }),
+    getAll: (token: string) =>
+      request<{ bookings: any[] }>('/bookings', {
+        method: 'GET',
+        token,
+      }),
+    getById: (id: string, token: string) =>
+      request<{ booking: any }>(`/bookings/${id}`, {
+        method: 'GET',
         token,
       }),
   },

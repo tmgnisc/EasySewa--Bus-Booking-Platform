@@ -45,17 +45,25 @@ const SearchResults = () => {
   const from = searchParams.get('from') || '';
   const to = searchParams.get('to') || '';
   const date = searchParams.get('date') || '';
+  const busId = searchParams.get('busId') || '';
 
   useEffect(() => {
     const fetchSchedules = async () => {
-      if (!from || !to || !date) {
-        setIsLoading(false);
-        return;
-      }
-
       setIsLoading(true);
       try {
-        const response = await api.schedule.getAll({ from, to, date });
+        let response;
+        
+        // If busId is provided, fetch schedules for that specific bus
+        if (busId) {
+          response = await api.schedule.getByBus(busId);
+        } 
+        // Otherwise, fetch by route (from, to, date)
+        else if (from && to && date) {
+          response = await api.schedule.getAll({ from, to, date });
+        } else {
+          setIsLoading(false);
+          return;
+        }
         
         // Normalize bus data in schedules
         const normalizedSchedules = (response.schedules || []).map((schedule: any) => ({
@@ -86,7 +94,7 @@ const SearchResults = () => {
     };
 
     fetchSchedules();
-  }, [from, to, date]);
+  }, [from, to, date, busId]);
 
   const filteredSchedules = schedules.filter((schedule) => {
     const matchesPrice = schedule.price >= priceRange[0] && schedule.price <= priceRange[1];
@@ -108,18 +116,28 @@ const SearchResults = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
-        {/* Search Widget */}
-        <div className="mb-8">
-          <SearchWidget />
-        </div>
+        {/* Search Widget - Hide when viewing by busId */}
+        {!busId && (
+          <div className="mb-8">
+            <SearchWidget />
+          </div>
+        )}
 
         {/* Results Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">
-            {from} → {to}
+            {busId 
+              ? 'Bus Schedules' 
+              : from && to 
+                ? `${from} → ${to}` 
+                : 'Search Buses'}
           </h1>
           <p className="text-muted-foreground">
-            {filteredSchedules.length} bus{filteredSchedules.length !== 1 ? 'es' : ''} found for {date}
+            {busId 
+              ? `${filteredSchedules.length} schedule${filteredSchedules.length !== 1 ? 's' : ''} available`
+              : from && to && date
+                ? `${filteredSchedules.length} bus${filteredSchedules.length !== 1 ? 'es' : ''} found for ${date}`
+                : 'Enter your search criteria to find buses'}
           </p>
         </div>
 
@@ -187,11 +205,17 @@ const SearchResults = () => {
                   <CardContent className="py-12 text-center">
                     <p className="text-muted-foreground mb-4">
                       {schedules.length === 0 
-                        ? 'No buses found for this route and date'
-                        : 'No buses found matching your filter criteria'}
+                        ? busId
+                          ? 'No schedules available for this bus'
+                          : from && to && date
+                            ? 'No buses found for this route and date'
+                            : 'Please enter search criteria to find buses'
+                        : 'No schedules found matching your filter criteria'}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Try adjusting your filters or search for a different route
+                      {busId 
+                        ? 'This bus may not have any scheduled trips yet'
+                        : 'Try adjusting your filters or search for a different route'}
                     </p>
                   </CardContent>
                 </Card>

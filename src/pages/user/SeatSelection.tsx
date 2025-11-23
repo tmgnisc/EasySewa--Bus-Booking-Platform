@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/layouts/MainLayout';
 import { SeatMap } from '@/components/booking/SeatMap';
@@ -6,25 +6,69 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { dummySchedules, dummyBuses, generateSeats } from '@/data/dummyData';
-import { formatCurrency, formatDate } from '@/utils/helpers';
-import { MapPin, Clock, Armchair, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react';
+import { formatCurrency, formatDate, generateSeats, parseImages, parseAmenities } from '@/utils/helpers';
+import { MapPin, Clock, Armchair, CreditCard, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Seat } from '@/types';
+import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 const SeatSelection = () => {
   const { scheduleId } = useParams();
   const navigate = useNavigate();
+  const { token, user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [schedule, setSchedule] = useState<any>(null);
+  const [bus, setBus] = useState<any>(null);
+  const [seats, setSeats] = useState<Seat[]>([]);
+  const [bookedSeats, setBookedSeats] = useState<string[]>([]);
 
-  const schedule = dummySchedules.find((s) => s.id === scheduleId);
-  const bus = schedule ? dummyBuses.find((b) => b.id === schedule.busId) : null;
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!scheduleId) {
+        setIsLoading(false);
+        return;
+      }
 
-  const [seats, setSeats] = useState<Seat[]>(
-    bus ? generateSeats(bus.totalSeats, ['A1', 'A2', 'B3', 'C4']) : []
-  );
+      setIsLoading(true);
+      try {
+        // Fetch schedule with bus data
+        const scheduleResponse = await api.schedule.getById(scheduleId);
+        const scheduleData = scheduleResponse.schedule;
+        setSchedule(scheduleData);
+        
+        if (scheduleData.bus) {
+          const busData = {
+            ...scheduleData.bus,
+            images: parseImages(scheduleData.bus.images),
+            amenities: parseAmenities(scheduleData.bus.amenities),
+          };
+          setBus(busData);
+        }
+
+        // Fetch booked seats
+        const seatsResponse = await api.booking.getBookedSeats(scheduleId);
+        const booked = seatsResponse.bookedSeats || [];
+        setBookedSeats(booked);
+
+        // Generate seats
+        if (scheduleData.bus) {
+          const generatedSeats = generateSeats(scheduleData.bus.totalSeats, booked);
+          setSeats(generatedSeats);
+        }
+      } catch (error: any) {
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load schedule data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [scheduleId]);
 
   const selectedSeats = seats.filter((seat) => seat.isSelected);
-  const totalAmount = schedule ? selectedSeats.length * schedule.price : 0;
+  const totalAmount = schedule ? selectedSeats.length * parseFloat(schedule.price) : 0;
 
   const handleSeatSelect = (seatNumber: string) => {
     setSeats((prevSeats) =>
@@ -34,15 +78,51 @@ const SeatSelection = () => {
     );
   };
 
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
+    if (!token || !user) {
+      toast.error('Please login to continue');
+      navigate('/login');
+      return;
+    }
+
     if (selectedSeats.length === 0) {
       toast.error('Please select at least one seat');
       return;
     }
 
-    toast.success(`Booking confirmed for seats: ${selectedSeats.map((s) => s.seatNumber).join(', ')}`);
-    navigate('/bookings');
+    if (!scheduleId) {
+      toast.error('Invalid schedule');
+      return;
+    }
+
+    try {
+      const seatNumbers = selectedSeats.map((s) => s.seatNumber);
+      await api.booking.create(
+        {
+          scheduleId,
+          seats: seatNumbers,
+        },
+        token
+      );
+
+      toast.success(`Booking confirmed for seats: ${seatNumbers.join(', ')}`);
+      navigate('/bookings');
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      toast.error(error.message || 'Failed to create booking');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading seat map...</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!schedule || !bus) {
     return (

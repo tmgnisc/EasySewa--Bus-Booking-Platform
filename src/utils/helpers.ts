@@ -106,3 +106,52 @@ export const parseImages = (images: any): string[] => {
   
   return [];
 };
+
+/**
+ * Generate seat layout for a bus
+ * Creates seats in 2 columns (A and B) with rows
+ * Format: A1, A2, ..., A10, B1, B2, ..., B10
+ */
+export const generateSeats = (totalSeats: number, bookedSeats: string[] = []): Array<{
+  seatNumber: string;
+  isBooked: boolean;
+  isSelected: boolean;
+  row: number;
+  column: number;
+}> => {
+  const seats: Array<{
+    seatNumber: string;
+    isBooked: boolean;
+    isSelected: boolean;
+    row: number;
+    column: number;
+  }> = [];
+  
+  const seatsPerColumn = Math.ceil(totalSeats / 2);
+  
+  // Left column (A)
+  for (let row = 1; row <= seatsPerColumn; row++) {
+    const seatNumber = `A${row}`;
+    seats.push({
+      seatNumber,
+      isBooked: bookedSeats.includes(seatNumber),
+      isSelected: false,
+      row,
+      column: 1,
+    });
+  }
+  
+  // Right column (B)
+  for (let row = 1; row <= seatsPerColumn; row++) {
+    const seatNumber = `B${row}`;
+    seats.push({
+      seatNumber,
+      isBooked: bookedSeats.includes(seatNumber),
+      isSelected: false,
+      row,
+      column: 2,
+    });
+  }
+  
+  return seats;
+};

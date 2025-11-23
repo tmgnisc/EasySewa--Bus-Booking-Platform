@@ -174,7 +174,7 @@ const Home = () => {
                           </div>
                         ) : null;
                       })()}
-                      <Link to="/search">
+                      <Link to={`/search?busId=${bus.id}`}>
                         <Button variant="link" className="px-0 mt-2">
                           View Schedules <ArrowRight className="ml-1 h-4 w-4" />
                         </Button>

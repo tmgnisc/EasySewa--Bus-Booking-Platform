@@ -4,6 +4,34 @@ import Bus from '../models/Bus.js';
 import User from '../models/User.js';
 import { Op } from 'sequelize';
 
+// Get booked seats for a schedule
+export const getBookedSeats = async (req, res) => {
+  try {
+    const { scheduleId } = req.params;
+
+    const bookings = await Booking.findAll({
+      where: {
+        scheduleId,
+        status: { [Op.ne]: 'cancelled' } // Exclude cancelled bookings
+      },
+      attributes: ['seats']
+    });
+
+    // Flatten all booked seats
+    const bookedSeats: string[] = [];
+    bookings.forEach(booking => {
+      if (Array.isArray(booking.seats)) {
+        bookedSeats.push(...booking.seats);
+      }
+    });
+
+    res.json({ bookedSeats });
+  } catch (error) {
+    console.error('Get booked seats error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // Get all bookings
 export const getAllBookings = async (req, res) => {
   try {
