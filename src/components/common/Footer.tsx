@@ -11,7 +11,7 @@ export const Footer = () => {
             <Link to="/" className="flex items-center gap-2 text-xl font-bold mb-4">
               <Bus className="h-6 w-6 text-primary" />
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                BusEase
+                EasySewa
               </span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
@@ -98,14 +98,14 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>support@busease.com</span>
+                <span>support@easysewa.com</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} BusEase. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} EasySewa. All rights reserved.</p>
         </div>
       </div>
     </footer>

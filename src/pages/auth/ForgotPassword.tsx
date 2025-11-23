@@ -33,7 +33,7 @@ const ForgotPassword = () => {
             <div className="inline-flex items-center gap-2 mb-4">
               <Bus className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                BusEase
+                EasySewa
               </span>
             </div>
             <h1 className="text-3xl font-bold mb-2">Forgot Password?</h1>

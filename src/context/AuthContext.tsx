@@ -17,7 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if user is logged in on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('busease_user');
+    const storedUser = localStorage.getItem('easysewa_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (foundUser) {
       setUser(foundUser);
-      localStorage.setItem('busease_user', JSON.stringify(foundUser));
+      localStorage.setItem('easysewa_user', JSON.stringify(foundUser));
       return true;
     }
     
@@ -55,13 +55,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     setUser(newUser);
-    localStorage.setItem('busease_user', JSON.stringify(newUser));
+    localStorage.setItem('easysewa_user', JSON.stringify(newUser));
     return true;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('busease_user');
+    localStorage.removeItem('easysewa_user');
   };
 
   const value = {

@@ -1,9 +1,9 @@
-# BusEase - Bus Booking Web Application
+# EasySewa - Bus Booking Web Application
 
 ## Project Structure
 
 ```
-busease/
+easysewa/
 ├── public/
 │   ├── placeholder.svg         # Placeholder images
 │   └── robots.txt             # SEO configuration
@@ -155,7 +155,7 @@ npm run preview
 ### Users:
 - **Customer**: john@example.com (any password)
 - **Bus Owner**: michael@example.com (any password)
-- **Admin**: admin@busease.com (any password)
+- **Admin**: admin@easysewa.com (any password)
 
 ## Routes
 

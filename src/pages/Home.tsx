@@ -16,20 +16,20 @@ const Home = () => {
           <div className="mx-auto max-w-3xl text-center text-primary-foreground">
             <Badge className="mb-4 bg-accent text-accent-foreground">India's #1 Bus Booking Platform</Badge>
             <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-6xl">
-              Travel Smarter with BusEase
+              Travel Smarter with EasySewa
             </h1>
             <p className="mb-8 text-lg opacity-90 lg:text-xl">
               Book comfortable and affordable bus tickets across India. Safe, reliable, and hassle-free travel experience.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link to="/search">
-                <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                <Button size="lg" variant="secondary" className="w-full sm:w-auto !text-foreground">
                   Book Your Ticket
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary-foreground !text-primary-foreground hover:bg-primary-foreground hover:!text-primary">
                   Get Started
                 </Button>
               </Link>
@@ -47,7 +47,7 @@ const Home = () => {
       <section className="py-16 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Why Choose BusEase?</h2>
+            <h2 className="text-3xl font-bold mb-4">Why Choose EasySewa?</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Experience seamless bus booking with the most trusted platform in India
             </p>
@@ -157,10 +157,10 @@ const Home = () => {
         <div className="container mx-auto px-4 text-center text-primary-foreground">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Your Journey?</h2>
           <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-            Join thousands of happy travelers who trust BusEase for their bus booking needs
+            Join thousands of happy travelers who trust EasySewa for their bus booking needs
           </p>
           <Link to="/signup">
-            <Button size="lg" variant="secondary">
+            <Button size="lg" variant="secondary" className="!text-foreground">
               Sign Up Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

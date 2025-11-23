@@ -41,7 +41,7 @@ export const Navbar = () => {
           <Link to="/" className="flex items-center gap-2 text-xl font-bold">
             <Bus className="h-6 w-6 text-primary" />
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              BusEase
+              EasySewa
             </span>
           </Link>
 

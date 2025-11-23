@@ -1,4 +1,4 @@
-// Core Type Definitions for BusEase Application
+// Core Type Definitions for EasySewa Application
 
 export type UserRole = 'user' | 'owner' | 'admin';
 

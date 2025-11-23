@@ -1,4 +1,4 @@
-// Dummy Data for BusEase Application
+// Dummy Data for EasySewa Application
 import { User, Bus, Schedule, Booking, Route, Testimonial, Analytics } from '@/types';
 
 export const dummyUsers: User[] = [
@@ -39,7 +39,7 @@ export const dummyUsers: User[] = [
   {
     id: 'admin-1',
     name: 'Admin User',
-    email: 'admin@busease.com',
+    email: 'admin@easysewa.com',
     phone: '+1234567894',
     role: 'admin',
     createdAt: '2023-12-01',
@@ -218,7 +218,7 @@ export const dummyTestimonials: Testimonial[] = [
     userName: 'Rahul Kumar',
     userImage: '/placeholder.svg',
     rating: 5,
-    comment: 'Excellent service! The bus was clean, comfortable, and arrived on time. Highly recommend BusEase for hassle-free travel.',
+    comment: 'Excellent service! The bus was clean, comfortable, and arrived on time. Highly recommend EasySewa for hassle-free travel.',
     date: '2024-10-15',
   },
   {

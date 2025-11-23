@@ -44,7 +44,7 @@ const Login = () => {
             <div className="inline-flex items-center gap-2 mb-4">
               <Bus className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                BusEase
+                EasySewa
               </span>
             </div>
             <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
@@ -114,7 +114,7 @@ const Login = () => {
               <ul className="text-xs space-y-1 text-muted-foreground">
                 <li>User: john@example.com</li>
                 <li>Owner: michael@example.com</li>
-                <li>Admin: admin@busease.com</li>
+                <li>Admin: admin@easysewa.com</li>
                 <li className="text-xs italic mt-2">Password: any password works in demo mode</li>
               </ul>
             </CardContent>
