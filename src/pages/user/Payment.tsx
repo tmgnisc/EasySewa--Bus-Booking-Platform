@@ -21,7 +21,8 @@ import {
 // Initialize Stripe
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 if (!stripePublishableKey) {
-  console.warn('Stripe publishable key is not set. Please add VITE_STRIPE_PUBLISHABLE_KEY to your .env file');
+  console.warn('Stripe publishable key is not set. Please add VITE_STRIPE_PUBLISHABLE_KEY to your .env file in the frontend root directory.');
+  console.warn('Note: After adding the key, you must restart your Vite dev server for changes to take effect.');
 }
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
@@ -282,8 +283,16 @@ const Payment = () => {
                     />
                   </Elements>
                 ) : (
-                  <div className="py-8 text-center">
-                    <p className="text-destructive mb-4">Stripe is not configured. Please add VITE_STRIPE_PUBLISHABLE_KEY to your .env file.</p>
+                  <div className="py-8 text-center space-y-4">
+                    <p className="text-destructive mb-4 font-semibold">Stripe is not configured.</p>
+                    <div className="text-sm text-muted-foreground space-y-2">
+                      <p>Please add the following to your <code className="bg-muted px-2 py-1 rounded">.env</code> file in the frontend root directory:</p>
+                      <code className="block bg-muted p-3 rounded text-left">
+                        VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+                      </code>
+                      <p className="mt-2">After adding the key, restart your Vite dev server.</p>
+                      <p className="text-xs">Current value: {import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? 'Set (but may be empty)' : 'Not found'}</p>
+                    </div>
                     <Button onClick={() => navigate('/bookings')}>Back to Bookings</Button>
                   </div>
                 )}

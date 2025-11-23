@@ -71,7 +71,7 @@ export const SeatMap = ({ seats, onSeatSelect }: SeatMapProps) => {
                       disabled={seat.isBooked}
                       onClick={() => !seat.isBooked && onSeatSelect(seat.seatNumber)}
                       className={cn(
-                        'flex-1 h-12 p-0 text-sm font-semibold transition-all',
+                        'h-12 w-full p-0 text-sm font-semibold transition-all',
                         seat.isBooked && 'cursor-not-allowed bg-muted border-muted text-muted-foreground',
                         seat.isSelected && 'bg-green-500 border-green-500 text-white hover:bg-green-600',
                         !seat.isBooked && !seat.isSelected && 'hover:border-primary hover:bg-primary/10'
@@ -97,7 +97,7 @@ export const SeatMap = ({ seats, onSeatSelect }: SeatMapProps) => {
                       disabled={seat.isBooked}
                       onClick={() => !seat.isBooked && onSeatSelect(seat.seatNumber)}
                       className={cn(
-                        'flex-1 h-12 p-0 text-sm font-semibold transition-all',
+                        'h-12 w-full p-0 text-sm font-semibold transition-all',
                         seat.isBooked && 'cursor-not-allowed bg-muted border-muted text-muted-foreground',
                         seat.isSelected && 'bg-green-500 border-green-500 text-white hover:bg-green-600',
                         !seat.isBooked && !seat.isSelected && 'hover:border-primary hover:bg-primary/10'
