@@ -25,7 +25,7 @@ import Payment from "./pages/user/Payment";
 
 // Owner Pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
-import ManageBuses from "./pages/owner/ManageBuses";
+import OwnerManageBuses from "./pages/owner/ManageBuses";
 import AddBus from "./pages/owner/AddBus";
 import OwnerBookings from "./pages/owner/OwnerBookings";
 
@@ -35,8 +35,6 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import ManageOwners from "./pages/admin/ManageOwners";
 import AdminManageBuses from "./pages/admin/ManageBuses";
 import AdminManageBookings from "./pages/admin/ManageBookings";
-import ManageBuses from "./pages/admin/ManageBuses";
-import ManageBookings from "./pages/admin/ManageBookings";
 
 const queryClient = new QueryClient();
 
@@ -65,7 +63,7 @@ const App = () => (
             
             {/* Owner Routes */}
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
-            <Route path="/owner/buses" element={<ManageBuses />} />
+            <Route path="/owner/buses" element={<OwnerManageBuses />} />
             <Route path="/owner/add-bus" element={<AddBus />} />
             <Route path="/owner/schedules" element={<OwnerDashboard />} />
             <Route path="/owner/bookings" element={<OwnerBookings />} />
