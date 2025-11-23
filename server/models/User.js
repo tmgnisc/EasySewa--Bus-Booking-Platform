@@ -37,6 +37,24 @@ const User = sequelize.define('User', {
     defaultValue: false,
     comment: 'For bus owners - approval status'
   },
+  isEmailVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  emailVerificationToken: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  busPhoto: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    comment: 'Cloudinary URL for bus photo'
+  },
+  busDocument: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    comment: 'Cloudinary URL for bus document'
+  },
   createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
