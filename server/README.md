@@ -33,6 +33,11 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-min-32-chars
 # CORS Configuration
 FRONTEND_URL=http://localhost:5173
 
+# Stripe Configuration
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+
 
 
 

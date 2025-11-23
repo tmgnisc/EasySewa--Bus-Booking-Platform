@@ -19,7 +19,11 @@ import {
 } from '@stripe/react-stripe-js';
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+if (!stripePublishableKey) {
+  console.warn('Stripe publishable key is not set. Please add VITE_STRIPE_PUBLISHABLE_KEY to your .env file');
+}
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 interface PaymentPageProps {
   bookingId: string;
@@ -169,6 +173,21 @@ const Payment = () => {
         }
       }
 
+      // Ensure seats is always an array
+      if (bookingInfo.seats) {
+        if (typeof bookingInfo.seats === 'string') {
+          try {
+            bookingInfo.seats = JSON.parse(bookingInfo.seats);
+          } catch {
+            bookingInfo.seats = [];
+          }
+        } else if (!Array.isArray(bookingInfo.seats)) {
+          bookingInfo.seats = [];
+        }
+      } else {
+        bookingInfo.seats = [];
+      }
+
       setBookingData(bookingInfo);
       
       try {
@@ -219,7 +238,12 @@ const Payment = () => {
 
   const schedule = bookingData.schedule || {};
   const bus = bookingData.bus || {};
-  const seats = bookingData.seats || [];
+  // Ensure seats is always an array
+  const seats = Array.isArray(bookingData.seats) 
+    ? bookingData.seats 
+    : (typeof bookingData.seats === 'string' 
+      ? JSON.parse(bookingData.seats || '[]') 
+      : []);
   const amount = parseFloat(bookingData.totalAmount);
 
   return (
@@ -239,23 +263,30 @@ const Payment = () => {
                 <CardDescription>Complete your booking by making the payment</CardDescription>
               </CardHeader>
               <CardContent>
-                <Elements
-                  stripe={stripePromise}
-                  options={{
-                    clientSecret,
-                    appearance: {
-                      theme: 'stripe',
-                    },
-                  }}
-                >
-                  <PaymentForm
-                    bookingId={bookingId!}
-                    amount={amount}
-                    schedule={schedule}
-                    bus={bus}
-                    seats={seats}
-                  />
-                </Elements>
+                {stripePromise ? (
+                  <Elements
+                    stripe={stripePromise}
+                    options={{
+                      clientSecret,
+                      appearance: {
+                        theme: 'stripe',
+                      },
+                    }}
+                  >
+                    <PaymentForm
+                      bookingId={bookingId!}
+                      amount={amount}
+                      schedule={schedule}
+                      bus={bus}
+                      seats={seats}
+                    />
+                  </Elements>
+                ) : (
+                  <div className="py-8 text-center">
+                    <p className="text-destructive mb-4">Stripe is not configured. Please add VITE_STRIPE_PUBLISHABLE_KEY to your .env file.</p>
+                    <Button onClick={() => navigate('/bookings')}>Back to Bookings</Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
