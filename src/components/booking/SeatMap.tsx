@@ -60,10 +60,12 @@ export const SeatMap = ({ seats, onSeatSelect }: SeatMapProps) => {
             const rightSeats = rowSeats.filter((s) => s.column > 2);
 
             return (
-              <div key={rowNum} className="grid grid-cols-[1fr_1fr_auto_1fr_1fr] gap-2 items-center">
-                {/* Left Side - 2 Columns */}
-                <div className="flex gap-2">
-                  {leftSeats.map((seat) => (
+              <div key={rowNum} className="grid grid-cols-5 gap-2 items-center">
+                {/* Left Side - 2 Columns (A1, A2) */}
+                {[0, 1].map((idx) => {
+                  const seat = leftSeats[idx];
+                  if (!seat) return <div key={`empty-left-${idx}`} className="h-12" />;
+                  return (
                     <Button
                       key={seat.seatNumber}
                       variant="outline"
@@ -79,17 +81,19 @@ export const SeatMap = ({ seats, onSeatSelect }: SeatMapProps) => {
                     >
                       {seat.seatNumber}
                     </Button>
-                  ))}
-                </div>
+                  );
+                })}
 
                 {/* Aisle */}
                 <div className="w-6 flex items-center justify-center">
                   <div className="h-8 w-0.5 bg-muted"></div>
                 </div>
 
-                {/* Right Side - 2 Columns */}
-                <div className="flex gap-2">
-                  {rightSeats.map((seat) => (
+                {/* Right Side - 2 Columns (B1, B2) */}
+                {[0, 1].map((idx) => {
+                  const seat = rightSeats[idx];
+                  if (!seat) return <div key={`empty-right-${idx}`} className="h-12" />;
+                  return (
                     <Button
                       key={seat.seatNumber}
                       variant="outline"
@@ -105,8 +109,8 @@ export const SeatMap = ({ seats, onSeatSelect }: SeatMapProps) => {
                     >
                       {seat.seatNumber}
                     </Button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             );
           })}

@@ -1,6 +1,10 @@
 import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import Booking from '../models/Booking.js';
+import Schedule from '../models/Schedule.js';
+import Bus from '../models/Bus.js';
+import User from '../models/User.js';
+import { sendBookingNotificationToOwner } from '../services/emailService.js';
 
 dotenv.config();
 
@@ -68,28 +72,47 @@ export const confirmPayment = async (req, res) => {
       const booking = await Booking.findByPk(bookingId, {
         include: [
           { model: Schedule, as: 'schedule' },
-          { model: Bus, as: 'bus', include: [{ model: User, as: 'owner' }] },
+          { 
+            model: Bus, 
+            as: 'bus',
+            include: [{ 
+              model: User, 
+              as: 'owner',
+              attributes: ['id', 'name', 'email', 'phone']
+            }]
+          },
           { model: User, as: 'user', attributes: ['id', 'name', 'email', 'phone'] }
         ]
       });
       
-      if (booking) {
-        booking.paymentStatus = 'paid';
-        await booking.save();
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
 
-        // Send email notification to bus owner about payment
-        if (booking.bus?.owner) {
-          try {
-            await sendBookingNotificationToOwner(
-              booking.bus.owner.email,
-              booking.bus.owner.name,
-              booking
-            );
-          } catch (emailError) {
-            console.error('Error sending payment notification email:', emailError);
-            // Don't fail the payment if email fails
-          }
+      booking.paymentStatus = 'paid';
+      await booking.save();
+
+      // Send email notification to bus owner about payment
+      try {
+        // Get bus owner from the bus
+        const bus = await Bus.findByPk(booking.busId, {
+          include: [{ 
+            model: User, 
+            as: 'owner',
+            attributes: ['id', 'name', 'email', 'phone']
+          }]
+        });
+
+        if (bus?.owner) {
+          await sendBookingNotificationToOwner(
+            bus.owner.email,
+            bus.owner.name,
+            booking
+          );
         }
+      } catch (emailError) {
+        console.error('Error sending payment notification email:', emailError);
+        // Don't fail the payment if email fails
       }
     }
 

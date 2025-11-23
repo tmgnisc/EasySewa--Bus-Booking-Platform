@@ -69,7 +69,7 @@ const PaymentForm = ({ bookingId, amount, schedule, bus, seats }: PaymentPagePro
       if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Confirm payment on backend
         try {
-          await api.payment.confirm(paymentIntent.id, bookingId, token!);
+          await api.payment.confirm(paymentIntent.id, bookingId!, token!);
           setPaymentSuccess(true);
           toast.success('Payment successful!');
           

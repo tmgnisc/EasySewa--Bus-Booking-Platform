@@ -1,17 +1,52 @@
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { dummyBookings } from '@/data/dummyData';
-import { Search, History, Clock, ArrowRight } from 'lucide-react';
+import { Search, History, Clock, ArrowRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatCurrency, formatDate } from '@/utils/helpers';
+import { formatCurrency, formatDate, parseAmenities } from '@/utils/helpers';
+import { api } from '@/lib/api';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 const UserDashboard = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [bookings, setBookings] = useState<any[]>([]);
   
-  const userBookings = dummyBookings.filter((booking) => booking.userId === user?.id);
-  const upcomingBookings = userBookings.filter((booking) => booking.status === 'confirmed');
+  useEffect(() => {
+    const fetchBookings = async () => {
+      if (!token || !user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await api.booking.getAll(token);
+        const userBookings = response.bookings || [];
+        setBookings(userBookings);
+      } catch (error: any) {
+        console.error('Error fetching bookings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, [token, user]);
+
+  const upcomingBookings = bookings.filter((booking) => 
+    booking.status === 'confirmed' && booking.paymentStatus === 'paid'
+  );
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <LoadingSpinner size="lg" text="Loading your bookings..." />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -50,7 +85,7 @@ const UserDashboard = () => {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                  <h3 className="text-3xl font-bold mt-1">{userBookings.length}</h3>
+                  <h3 className="text-3xl font-bold mt-1">{bookings.length}</h3>
                   <Link to="/bookings">
                     <Button variant="link" className="px-0 mt-2" size="sm">
                       View All
@@ -97,32 +132,42 @@ const UserDashboard = () => {
           <CardContent>
             {upcomingBookings.length > 0 ? (
               <div className="space-y-4">
-                {upcomingBookings.slice(0, 3).map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <h4 className="font-semibold">{booking.busName}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {booking.from} → {booking.to}
-                      </p>
-                      <p className="text-sm">
-                        {formatDate(booking.date)} • {booking.departureTime}
-                      </p>
-                    </div>
-                    <div className="mt-4 md:mt-0 flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Seats</p>
-                        <p className="font-semibold">{booking.seats.join(', ')}</p>
+                {upcomingBookings.slice(0, 3).map((booking) => {
+                  const seats = Array.isArray(booking.seats) 
+                    ? booking.seats 
+                    : typeof booking.seats === 'string' 
+                    ? JSON.parse(booking.seats || '[]')
+                    : [];
+                  const schedule = booking.schedule || {};
+                  const bus = booking.bus || {};
+                  
+                  return (
+                    <div
+                      key={booking.id}
+                      className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <h4 className="font-semibold">{bus.busName || 'Bus'}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {schedule.from || booking.from} → {schedule.to || booking.to}
+                        </p>
+                        <p className="text-sm">
+                          {formatDate(schedule.date || booking.date)} • {schedule.departureTime || booking.departureTime}
+                        </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Amount</p>
-                        <p className="font-bold text-primary">{formatCurrency(booking.totalAmount)}</p>
+                      <div className="mt-4 md:mt-0 flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">Seats</p>
+                          <p className="font-semibold">{seats.join(', ') || 'N/A'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">Amount</p>
+                          <p className="font-bold text-primary">{formatCurrency(booking.totalAmount || 0)}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8">

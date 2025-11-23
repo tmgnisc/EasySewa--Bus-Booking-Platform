@@ -18,6 +18,7 @@ const SeatSelection = () => {
   const navigate = useNavigate();
   const { token, user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [schedule, setSchedule] = useState<any>(null);
   const [bus, setBus] = useState<any>(null);
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -97,6 +98,7 @@ const SeatSelection = () => {
       return;
     }
 
+    setIsProcessingPayment(true);
     try {
       const seatNumbers = selectedSeats.map((s) => s.seatNumber);
       const bookingResponse = await api.booking.create(
@@ -120,6 +122,7 @@ const SeatSelection = () => {
     } catch (error: any) {
       console.error('Booking error:', error);
       toast.error(error.message || 'Failed to create booking');
+      setIsProcessingPayment(false);
     }
   };
 
@@ -247,10 +250,19 @@ const SeatSelection = () => {
                   className="w-full"
                   size="lg"
                   onClick={handleProceedToPayment}
-                  disabled={selectedSeats.length === 0}
+                  disabled={selectedSeats.length === 0 || isProcessingPayment}
                 >
-                  <CreditCard className="mr-2 h-5 w-5" />
-                  Proceed to Payment
+                  {isProcessingPayment ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Proceed to Payment
+                    </>
+                  )}
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center">
