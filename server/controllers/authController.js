@@ -69,14 +69,15 @@ export const register = async (req, res) => {
       phone,
       role: role || 'user',
       isApproved: role === 'admin' ? true : (role === 'owner' ? false : true),
-      isEmailVerified: role === 'admin' ? true : false,
-      emailVerificationToken: role === 'admin' ? null : emailVerificationToken,
+      // Only bus owners need email verification, customers are auto-verified
+      isEmailVerified: role === 'admin' || role === 'user' ? true : false,
+      emailVerificationToken: role === 'owner' ? emailVerificationToken : null,
       busPhoto: busPhotoUrl,
       busDocument: busDocumentUrl
     });
 
-    // Send verification email (except for admin)
-    if (role !== 'admin') {
+    // Send verification email only for bus owners
+    if (role === 'owner') {
       await sendVerificationEmail(email, emailVerificationToken, name);
     }
 
@@ -101,8 +102,8 @@ export const register = async (req, res) => {
 
     res.status(201).json({
       message: role === 'owner' 
-        ? 'Registration successful! Your account is pending admin approval. Please check your email to verify your account.'
-        : 'User registered successfully. Please check your email to verify your account.',
+        ? 'Registration successful! Please check your email to verify your account. Your account will be reviewed by admin for approval.'
+        : 'Account created successfully! You can now start booking buses.',
       user: userResponse,
       token
     });
@@ -163,6 +164,13 @@ export const login = async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check email verification for bus owners
+    if (user.role === 'owner' && !user.isEmailVerified) {
+      return res.status(403).json({ 
+        message: 'Please verify your email address before logging in. Check your email for the verification link.' 
+      });
     }
 
     // Generate token

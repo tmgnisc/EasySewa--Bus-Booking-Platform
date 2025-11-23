@@ -117,11 +117,14 @@ const Signup = () => {
         setTimeout(() => {
           // Navigate based on role
           if (formData.role === 'owner') {
-            navigate('/owner/dashboard');
+            // Bus owners need to verify email and wait for approval
+            toast.info('Please check your email to verify your account. After verification, wait for admin approval.');
+            navigate('/login');
           } else {
+            // Customers can login immediately
             navigate('/dashboard');
           }
-        }, 1000);
+        }, 1500);
       } else {
         toast.error(result.message || 'Failed to create account');
       }

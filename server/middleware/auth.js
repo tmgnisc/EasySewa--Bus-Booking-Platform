@@ -38,10 +38,17 @@ export const authorize = (...roles) => {
 };
 
 export const authorizeOwner = async (req, res, next) => {
-  if (req.user.role === 'owner' && !req.user.isApproved) {
-    return res.status(403).json({ 
-      message: 'Your account is pending approval' 
-    });
+  if (req.user.role === 'owner') {
+    if (!req.user.isEmailVerified) {
+      return res.status(403).json({ 
+        message: 'Please verify your email address first' 
+      });
+    }
+    if (!req.user.isApproved) {
+      return res.status(403).json({ 
+        message: 'Your account is pending admin approval. Please wait for approval.' 
+      });
+    }
   }
   next();
 };

@@ -29,7 +29,14 @@ const Login = () => {
         window.location.href = '/';
       }
     } catch (error: any) {
-      toast.error(error.message || 'Invalid email or password');
+      // Show specific error messages from backend
+      const errorMessage = error.message || 'Invalid email or password';
+      toast.error(errorMessage);
+      
+      // If email not verified, show additional info
+      if (errorMessage.includes('verify your email')) {
+        toast.info('Check your email inbox for the verification link.');
+      }
     } finally {
       setIsLoading(false);
     }
