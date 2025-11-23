@@ -108,9 +108,11 @@ export const parseImages = (images: any): string[] => {
 };
 
 /**
- * Generate seat layout for a bus
- * Creates seats in 2 columns (A and B) with rows
- * Format: A1, A2, ..., A10, B1, B2, ..., B10
+ * Generate seat layout for a bus (2x2 configuration)
+ * Creates seats in 2x2 layout: 2 columns on left, aisle, 2 columns on right
+ * Format: Row 1: A1, A2 (left) | Aisle | B1, B2 (right)
+ *         Row 2: A3, A4 (left) | Aisle | B3, B4 (right)
+ * Each row has 4 seats total (2 on each side of aisle)
  */
 export const generateSeats = (totalSeats: number, bookedSeats: string[] = []): Array<{
   seatNumber: string;
@@ -127,30 +129,40 @@ export const generateSeats = (totalSeats: number, bookedSeats: string[] = []): A
     column: number;
   }> = [];
   
-  const seatsPerColumn = Math.ceil(totalSeats / 2);
+  // 2x2 layout: 4 seats per row
+  const seatsPerRow = 4;
+  const totalRows = Math.ceil(totalSeats / seatsPerRow);
+  let seatCounter = 1;
   
-  // Left column (A)
-  for (let row = 1; row <= seatsPerColumn; row++) {
-    const seatNumber = `A${row}`;
-    seats.push({
-      seatNumber,
-      isBooked: bookedSeats.includes(seatNumber),
-      isSelected: false,
-      row,
-      column: 1,
-    });
-  }
-  
-  // Right column (B)
-  for (let row = 1; row <= seatsPerColumn; row++) {
-    const seatNumber = `B${row}`;
-    seats.push({
-      seatNumber,
-      isBooked: bookedSeats.includes(seatNumber),
-      isSelected: false,
-      row,
-      column: 2,
-    });
+  for (let row = 1; row <= totalRows; row++) {
+    // Left side: 2 columns (A1, A2 for row 1, A3, A4 for row 2, etc.)
+    for (let col = 1; col <= 2; col++) {
+      if (seats.length < totalSeats) {
+        const seatNumber = `A${seatCounter}`;
+        seats.push({
+          seatNumber,
+          isBooked: bookedSeats.includes(seatNumber),
+          isSelected: false,
+          row,
+          column: col, // Column 1 or 2 (left side)
+        });
+        seatCounter++;
+      }
+    }
+    
+    // Right side: 2 columns (B1, B2 for row 1, B3, B4 for row 2, etc.)
+    for (let col = 1; col <= 2; col++) {
+      if (seats.length < totalSeats) {
+        const seatNumber = `B${seatCounter - 2}`; // B1, B2 for row 1, B3, B4 for row 2
+        seats.push({
+          seatNumber,
+          isBooked: bookedSeats.includes(seatNumber),
+          isSelected: false,
+          row,
+          column: col + 2, // Column 3 or 4 (right side)
+        });
+      }
+    }
   }
   
   return seats;
