@@ -169,9 +169,24 @@ export const createBooking = async (req, res) => {
     const bookingWithRelations = await Booking.findByPk(booking.id, {
       include: [
         { model: Schedule, as: 'schedule' },
-        { model: Bus, as: 'bus' }
+        { model: Bus, as: 'bus', include: [{ model: User, as: 'owner' }] },
+        { model: User, as: 'user', attributes: ['id', 'name', 'email', 'phone'] }
       ]
     });
+
+    // Send email notification to bus owner
+    if (bookingWithRelations.bus?.owner) {
+      try {
+        await sendBookingNotificationToOwner(
+          bookingWithRelations.bus.owner.email,
+          bookingWithRelations.bus.owner.name,
+          bookingWithRelations
+        );
+      } catch (emailError) {
+        console.error('Error sending email to owner:', emailError);
+        // Don't fail the booking if email fails
+      }
+    }
 
     res.status(201).json({
       message: 'Booking created successfully',

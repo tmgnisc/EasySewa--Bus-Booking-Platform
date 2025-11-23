@@ -27,6 +27,7 @@ import Payment from "./pages/user/Payment";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import ManageBuses from "./pages/owner/ManageBuses";
 import AddBus from "./pages/owner/AddBus";
+import OwnerBookings from "./pages/owner/OwnerBookings";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -63,7 +64,7 @@ const App = () => (
             <Route path="/owner/buses" element={<ManageBuses />} />
             <Route path="/owner/add-bus" element={<AddBus />} />
             <Route path="/owner/schedules" element={<OwnerDashboard />} />
-            <Route path="/owner/bookings" element={<OwnerDashboard />} />
+            <Route path="/owner/bookings" element={<OwnerBookings />} />
             <Route path="/owner/revenue" element={<OwnerDashboard />} />
             
             {/* Admin Routes */}

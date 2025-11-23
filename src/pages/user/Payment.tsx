@@ -64,7 +64,7 @@ const PaymentForm = ({ bookingId, amount, schedule, bus, seats }: PaymentPagePro
       if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Confirm payment on backend
         try {
-          await api.booking.confirmPayment(bookingId, paymentIntent.id, token!);
+          await api.payment.confirm(paymentIntent.id, bookingId, token!);
           setPaymentSuccess(true);
           toast.success('Payment successful!');
           
@@ -145,55 +145,50 @@ const Payment = () => {
         return;
       }
 
+      setIsLoading(true);
+      
       // Get booking data from location state or fetch it
       const stateData = location.state;
+      let bookingInfo = null;
+      let paymentAmount = 0;
+
       if (stateData?.booking && stateData?.amount) {
-        setBookingData(stateData);
-        setIsLoading(true);
-        
-        try {
-          // Create payment intent
-          const response = await api.payment.createIntent(
-            {
-              amount: stateData.amount,
-              bookingId: bookingId,
-              currency: 'inr',
-            },
-            token
-          );
-          
-          setClientSecret(response.clientSecret);
-        } catch (error: any) {
-          console.error('Error creating payment intent:', error);
-          toast.error('Failed to initialize payment');
-          navigate('/bookings');
-        } finally {
-          setIsLoading(false);
-        }
+        bookingInfo = stateData.booking;
+        paymentAmount = stateData.amount;
       } else {
         // Fetch booking data
         try {
-          const booking = await api.booking.getById(bookingId, token);
-          setBookingData(booking.booking);
-          
-          const amount = parseFloat(booking.booking.totalAmount);
-          const response = await api.payment.createIntent(
-            {
-              amount,
-              bookingId: bookingId,
-              currency: 'inr',
-            },
-            token
-          );
-          
-          setClientSecret(response.clientSecret);
+          const bookingResponse = await api.booking.getById(bookingId, token);
+          bookingInfo = bookingResponse.booking;
+          paymentAmount = parseFloat(bookingResponse.booking.totalAmount);
         } catch (error: any) {
           console.error('Error fetching booking:', error);
           toast.error('Failed to load booking');
           navigate('/bookings');
-        } finally {
-          setIsLoading(false);
+          return;
         }
+      }
+
+      setBookingData(bookingInfo);
+      
+      try {
+        // Create payment intent
+        const response = await api.payment.createIntent(
+          {
+            amount: paymentAmount,
+            bookingId: bookingId,
+            currency: 'inr',
+          },
+          token
+        );
+        
+        setClientSecret(response.clientSecret);
+      } catch (error: any) {
+        console.error('Error creating payment intent:', error);
+        toast.error('Failed to initialize payment');
+        navigate('/bookings');
+      } finally {
+        setIsLoading(false);
       }
     };
 

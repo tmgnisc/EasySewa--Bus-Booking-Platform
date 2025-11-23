@@ -65,10 +65,31 @@ export const confirmPayment = async (req, res) => {
 
     // Update booking payment status
     if (bookingId) {
-      const booking = await Booking.findByPk(bookingId);
+      const booking = await Booking.findByPk(bookingId, {
+        include: [
+          { model: Schedule, as: 'schedule' },
+          { model: Bus, as: 'bus', include: [{ model: User, as: 'owner' }] },
+          { model: User, as: 'user', attributes: ['id', 'name', 'email', 'phone'] }
+        ]
+      });
+      
       if (booking) {
         booking.paymentStatus = 'paid';
         await booking.save();
+
+        // Send email notification to bus owner about payment
+        if (booking.bus?.owner) {
+          try {
+            await sendBookingNotificationToOwner(
+              booking.bus.owner.email,
+              booking.bus.owner.name,
+              booking
+            );
+          } catch (emailError) {
+            console.error('Error sending payment notification email:', emailError);
+            // Don't fail the payment if email fails
+          }
+        }
       }
     }
 
