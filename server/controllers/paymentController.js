@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Create payment intent
 export const createPaymentIntent = async (req, res) => {
   try {
-    const { amount, bookingId, currency = 'usd' } = req.body;
+    const { amount, bookingId, currency = 'inr' } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Invalid amount' });

@@ -110,8 +110,8 @@ export const parseImages = (images: any): string[] => {
 /**
  * Generate seat layout for a bus (2x2 configuration)
  * Creates seats in 2x2 layout: 2 columns on left, aisle, 2 columns on right
- * Format: Row 1: A1, A2 (left) | Aisle | B1, B2 (right)
- *         Row 2: A3, A4 (left) | Aisle | B3, B4 (right)
+ * Format: Row 1: A1, A2 (left columns 1,2) | Aisle | B1, B2 (right columns 3,4)
+ *         Row 2: A3, A4 (left columns 1,2) | Aisle | B3, B4 (right columns 3,4)
  * Each row has 4 seats total (2 on each side of aisle)
  */
 export const generateSeats = (totalSeats: number, bookedSeats: string[] = []): Array<{
@@ -132,13 +132,15 @@ export const generateSeats = (totalSeats: number, bookedSeats: string[] = []): A
   // 2x2 layout: 4 seats per row
   const seatsPerRow = 4;
   const totalRows = Math.ceil(totalSeats / seatsPerRow);
-  let seatCounter = 1;
   
   for (let row = 1; row <= totalRows; row++) {
-    // Left side: 2 columns (A1, A2 for row 1, A3, A4 for row 2, etc.)
+    // Left side: 2 columns (A seats)
+    // Row 1: A1 (col 1), A2 (col 2)
+    // Row 2: A3 (col 1), A4 (col 2)
+    const leftStart = (row - 1) * 2 + 1; // 1 for row 1, 3 for row 2
     for (let col = 1; col <= 2; col++) {
       if (seats.length < totalSeats) {
-        const seatNumber = `A${seatCounter}`;
+        const seatNumber = `A${leftStart + col - 1}`; // A1, A2 for row 1, A3, A4 for row 2
         seats.push({
           seatNumber,
           isBooked: bookedSeats.includes(seatNumber),
@@ -146,14 +148,16 @@ export const generateSeats = (totalSeats: number, bookedSeats: string[] = []): A
           row,
           column: col, // Column 1 or 2 (left side)
         });
-        seatCounter++;
       }
     }
     
-    // Right side: 2 columns (B1, B2 for row 1, B3, B4 for row 2, etc.)
+    // Right side: 2 columns (B seats)
+    // Row 1: B1 (col 3), B2 (col 4)
+    // Row 2: B3 (col 3), B4 (col 4)
+    const rightStart = (row - 1) * 2 + 1; // 1 for row 1, 3 for row 2
     for (let col = 1; col <= 2; col++) {
       if (seats.length < totalSeats) {
-        const seatNumber = `B${seatCounter - 2}`; // B1, B2 for row 1, B3, B4 for row 2
+        const seatNumber = `B${rightStart + col - 1}`; // B1, B2 for row 1, B3, B4 for row 2
         seats.push({
           seatNumber,
           isBooked: bookedSeats.includes(seatNumber),

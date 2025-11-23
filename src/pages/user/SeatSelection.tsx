@@ -99,7 +99,7 @@ const SeatSelection = () => {
 
     try {
       const seatNumbers = selectedSeats.map((s) => s.seatNumber);
-      await api.booking.create(
+      const bookingResponse = await api.booking.create(
         {
           scheduleId,
           seats: seatNumbers,
@@ -107,8 +107,16 @@ const SeatSelection = () => {
         token
       );
 
-      toast.success(`Booking confirmed for seats: ${seatNumbers.join(', ')}`);
-      navigate('/bookings');
+      // Redirect to payment page with booking data
+      navigate(`/payment/${bookingResponse.booking.id}`, {
+        state: {
+          booking: bookingResponse.booking,
+          amount: totalAmount,
+          schedule,
+          bus,
+          seats: seatNumbers,
+        },
+      });
     } catch (error: any) {
       console.error('Booking error:', error);
       toast.error(error.message || 'Failed to create booking');

@@ -21,6 +21,7 @@ import SearchResults from "./pages/user/SearchResults";
 import SeatSelection from "./pages/user/SeatSelection";
 import BookingHistory from "./pages/user/BookingHistory";
 import Profile from "./pages/user/Profile";
+import Payment from "./pages/user/Payment";
 
 // Owner Pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/dashboard" element={<UserDashboard />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/bus/:scheduleId" element={<SeatSelection />} />
+            <Route path="/payment/:bookingId" element={<Payment />} />
             <Route path="/bookings" element={<BookingHistory />} />
             <Route path="/profile" element={<Profile />} />
             

@@ -3,6 +3,7 @@ import Schedule from '../models/Schedule.js';
 import Bus from '../models/Bus.js';
 import User from '../models/User.js';
 import { Op } from 'sequelize';
+import { sendBookingNotificationToOwner } from '../services/emailService.js';
 
 // Get booked seats for a schedule
 export const getBookedSeats = async (req, res) => {

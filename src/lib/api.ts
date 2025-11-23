@@ -204,6 +204,27 @@ export const api = {
         method: 'GET',
         token,
       }),
+    confirmPayment: (bookingId: string, paymentIntentId: string, token: string) =>
+      request<{ message: string; paymentIntent: any }>('/bookings/confirm-payment', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ bookingId, paymentIntentId }),
+      }),
+  },
+  // Payment endpoints
+  payment: {
+    createIntent: (data: { amount: number; bookingId: string; currency?: string }, token: string) =>
+      request<{ clientSecret: string; paymentIntentId: string }>('/payments/create-intent', {
+        method: 'POST',
+        token,
+        body: JSON.stringify(data),
+      }),
+    confirm: (paymentIntentId: string, bookingId: string, token: string) =>
+      request<{ message: string; paymentIntent: any }>('/payments/confirm', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ paymentIntentId, bookingId }),
+      }),
   },
 };
 
