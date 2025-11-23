@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { Bus, Loader2 } from 'lucide-react';
+import { Bus, Loader2, Upload, X } from 'lucide-react';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -19,9 +19,56 @@ const Signup = () => {
     confirmPassword: '',
     role: 'user' as 'user' | 'owner',
   });
+  const [busPhoto, setBusPhoto] = useState<File | null>(null);
+  const [busDocument, setBusDocument] = useState<File | null>(null);
+  const [busPhotoPreview, setBusPhotoPreview] = useState<string | null>(null);
+  const [busDocumentPreview, setBusDocumentPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'document') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    if (type === 'photo') {
+      setBusPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBusPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setBusDocument(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBusDocumentPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeFile = (type: 'photo' | 'document') => {
+    if (type === 'photo') {
+      setBusPhoto(null);
+      setBusPhotoPreview(null);
+    } else {
+      setBusDocument(null);
+      setBusDocumentPreview(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,25 +83,50 @@ const Signup = () => {
       return;
     }
 
+    // Validate bus owner files
+    if (formData.role === 'owner') {
+      if (!busPhoto || !busDocument) {
+        toast.error('Please upload both bus photo and bus document');
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
-      const success = await signup(
-        formData.name,
-        formData.email,
-        formData.password,
-        formData.phone,
-        formData.role
-      );
+      // Create FormData
+      const submitFormData = new FormData();
+      submitFormData.append('name', formData.name);
+      submitFormData.append('email', formData.email);
+      submitFormData.append('phone', formData.phone);
+      submitFormData.append('password', formData.password);
+      submitFormData.append('role', formData.role);
 
-      if (success) {
-        toast.success('Account created successfully!');
-        navigate('/dashboard');
-      } else {
-        toast.error('Failed to create account');
+      // Add files for bus owners
+      if (formData.role === 'owner') {
+        if (busPhoto) submitFormData.append('busPhoto', busPhoto);
+        if (busDocument) submitFormData.append('busDocument', busDocument);
       }
-    } catch (error) {
-      toast.error('An error occurred during signup');
+
+      const result = await signup(submitFormData);
+
+      if (result.success) {
+        toast.success(result.message || 'Account created successfully!');
+        
+        // Small delay to show success message
+        setTimeout(() => {
+          // Navigate based on role
+          if (formData.role === 'owner') {
+            navigate('/owner/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
+        }, 1000);
+      } else {
+        toast.error(result.message || 'Failed to create account');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred during signup');
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +217,16 @@ const Signup = () => {
                   <Label>Account Type</Label>
                   <RadioGroup
                     value={formData.role}
-                    onValueChange={(value: 'user' | 'owner') => setFormData({ ...formData, role: value })}
+                    onValueChange={(value: 'user' | 'owner') => {
+                      setFormData({ ...formData, role: value });
+                      // Clear files when switching roles
+                      if (value === 'user') {
+                        setBusPhoto(null);
+                        setBusDocument(null);
+                        setBusPhotoPreview(null);
+                        setBusDocumentPreview(null);
+                      }
+                    }}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="user" id="user" />
@@ -161,6 +242,104 @@ const Signup = () => {
                     </div>
                   </RadioGroup>
                 </div>
+
+                {/* Bus Owner Document Upload */}
+                {formData.role === 'owner' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="busPhoto">Bus Photo *</Label>
+                      {busPhotoPreview ? (
+                        <div className="relative">
+                          <img
+                            src={busPhotoPreview}
+                            alt="Bus photo preview"
+                            className="w-full h-48 object-cover rounded-md border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2"
+                            onClick={() => removeFile('photo')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-md p-6">
+                          <label
+                            htmlFor="busPhoto"
+                            className="flex flex-col items-center justify-center cursor-pointer"
+                          >
+                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                            <span className="text-sm text-muted-foreground">
+                              Click to upload bus photo
+                            </span>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              PNG, JPG up to 5MB
+                            </span>
+                            <input
+                              id="busPhoto"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileChange(e, 'photo')}
+                              required={formData.role === 'owner'}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="busDocument">Bus Document (License/Registration) *</Label>
+                      {busDocumentPreview ? (
+                        <div className="relative">
+                          <img
+                            src={busDocumentPreview}
+                            alt="Bus document preview"
+                            className="w-full h-48 object-cover rounded-md border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2"
+                            onClick={() => removeFile('document')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-md p-6">
+                          <label
+                            htmlFor="busDocument"
+                            className="flex flex-col items-center justify-center cursor-pointer"
+                          >
+                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                            <span className="text-sm text-muted-foreground">
+                              Click to upload bus document
+                            </span>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              PNG, JPG up to 5MB
+                            </span>
+                            <input
+                              id="busDocument"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFileChange(e, 'document')}
+                              required={formData.role === 'owner'}
+                            />
+                          </label>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Upload a clear photo of your bus license or registration document
+                      </p>
+                    </div>
+                  </>
+                )}
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
                 <Button type="submit" className="w-full" disabled={isLoading}>

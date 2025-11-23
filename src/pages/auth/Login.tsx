@@ -24,13 +24,12 @@ const Login = () => {
       const success = await login(email, password);
       if (success) {
         toast.success('Login successful!');
-        // Redirect based on user role will be handled by the navbar
-        navigate('/dashboard');
-      } else {
-        toast.error('Invalid email or password');
+        // Redirect will be handled by useEffect or navigation logic
+        // The AuthContext will handle redirect based on role
+        window.location.href = '/';
       }
-    } catch (error) {
-      toast.error('An error occurred during login');
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
     }

@@ -10,6 +10,9 @@ export interface User {
   role: UserRole;
   createdAt: string;
   isApproved?: boolean; // For bus owners
+  isEmailVerified?: boolean;
+  busPhoto?: string; // Cloudinary URL
+  busDocument?: string; // Cloudinary URL
 }
 
 export interface Bus {

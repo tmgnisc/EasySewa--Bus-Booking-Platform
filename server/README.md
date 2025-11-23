@@ -36,6 +36,7 @@ FRONTEND_URL=http://localhost:5173
 
 
 
+
 ```
 
 ### 3. Database Setup

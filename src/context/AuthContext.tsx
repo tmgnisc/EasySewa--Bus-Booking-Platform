@@ -1,75 +1,106 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types';
-import { dummyUsers } from '@/data/dummyData';
+import { api } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, password: string, phone: string, role: 'user' | 'owner') => Promise<boolean>;
+  signup: (formData: FormData) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   // Check if user is logged in on mount
   useEffect(() => {
+    const storedToken = localStorage.getItem('easysewa_token');
     const storedUser = localStorage.getItem('easysewa_user');
-    if (storedUser) {
+    
+    if (storedToken && storedUser) {
+      setToken(storedToken);
       setUser(JSON.parse(storedUser));
+      // Verify token is still valid
+      refreshUser();
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulate API call
-    const foundUser = dummyUsers.find(u => u.email === email);
-    
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('easysewa_user', JSON.stringify(foundUser));
-      return true;
+  const refreshUser = async () => {
+    const storedToken = localStorage.getItem('easysewa_token');
+    if (!storedToken) return;
+
+    try {
+      const response = await api.auth.getMe(storedToken);
+      setUser(response.user);
+      localStorage.setItem('easysewa_user', JSON.stringify(response.user));
+    } catch (error) {
+      // Token invalid, logout
+      logout();
     }
-    
-    return false;
   };
 
-  const signup = async (
-    name: string,
-    email: string,
-    password: string,
-    phone: string,
-    role: 'user' | 'owner'
-  ): Promise<boolean> => {
-    // Simulate API call
-    const newUser: User = {
-      id: `${role}-${Date.now()}`,
-      name,
-      email,
-      phone,
-      role,
-      createdAt: new Date().toISOString(),
-      ...(role === 'owner' && { isApproved: false }),
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('easysewa_user', JSON.stringify(newUser));
-    return true;
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await api.auth.login(email, password);
+      
+      setUser(response.user);
+      setToken(response.token);
+      localStorage.setItem('easysewa_token', response.token);
+      localStorage.setItem('easysewa_user', JSON.stringify(response.user));
+      
+      return true;
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  const signup = async (formData: FormData): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const response = await api.auth.register(formData);
+      
+      // If registration successful, set user and token
+      if (response.token) {
+        setUser(response.user);
+        setToken(response.token);
+        localStorage.setItem('easysewa_token', response.token);
+        localStorage.setItem('easysewa_user', JSON.stringify(response.user));
+      }
+      
+      return {
+        success: true,
+        message: response.message || 'Account created successfully!'
+      };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to create account'
+      };
+    }
   };
 
   const logout = () => {
     setUser(null);
+    setToken(null);
+    localStorage.removeItem('easysewa_token');
     localStorage.removeItem('easysewa_user');
   };
 
   const value = {
     user,
+    token,
     login,
     signup,
     logout,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !!token,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
