@@ -1,13 +1,33 @@
+import { useEffect, useState } from 'react';
 import { MainLayout } from '@/layouts/MainLayout';
 import { SearchWidget } from '@/components/booking/SearchWidget';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, CheckCircle, Shield, Clock, Star } from 'lucide-react';
+import { ArrowRight, CheckCircle, Shield, Clock, Star, Loader2 } from 'lucide-react';
 import { dummyRoutes, dummyTestimonials } from '@/data/dummyData';
 import { Link } from 'react-router-dom';
+import { api } from '@/lib/api';
 
 const Home = () => {
+  const [buses, setBuses] = useState<any[]>([]);
+  const [isLoadingBuses, setIsLoadingBuses] = useState(true);
+
+  useEffect(() => {
+    const fetchBuses = async () => {
+      try {
+        const response = await api.bus.getAll();
+        setBuses(response.buses || []);
+      } catch (error) {
+        console.error('Error fetching buses:', error);
+        // Don't show error on home page, just use empty array
+      } finally {
+        setIsLoadingBuses(false);
+      }
+    };
+
+    fetchBuses();
+  }, []);
   return (
     <MainLayout>
       {/* Hero Section */}
@@ -89,6 +109,74 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Available Buses */}
+      {buses.length > 0 && (
+        <section className="py-16 lg:py-24">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Available Buses</h2>
+              <p className="text-muted-foreground">Browse our fleet of comfortable buses</p>
+            </div>
+
+            {isLoadingBuses ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {buses.slice(0, 6).map((bus) => (
+                  <Card key={bus.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    {bus.images && bus.images.length > 0 ? (
+                      <div className="aspect-video overflow-hidden">
+                        <img
+                          src={bus.images[0]}
+                          alt={bus.busName}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20" />
+                    )}
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="font-semibold text-lg">{bus.busName}</h3>
+                          <p className="text-sm text-muted-foreground">{bus.busNumber}</p>
+                        </div>
+                        <Badge variant="secondary">{bus.busType}</Badge>
+                      </div>
+                      <div className="flex items-center gap-1 mb-2">
+                        <Star className="h-4 w-4 fill-warning text-warning" />
+                        <span className="text-sm font-medium">{bus.rating || '0.0'}</span>
+                      </div>
+                      {bus.amenities && bus.amenities.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {bus.amenities.slice(0, 3).map((amenity: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {amenity}
+                            </Badge>
+                          ))}
+                          {bus.amenities.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{bus.amenities.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                      <Link to="/search">
+                        <Button variant="link" className="px-0 mt-2">
+                          View Schedules <ArrowRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Popular Routes */}
       <section className="py-16 lg:py-24 bg-muted/30">

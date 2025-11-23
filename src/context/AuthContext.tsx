@@ -9,6 +9,7 @@ interface AuthContextType {
   signup: (formData: FormData) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
   refreshUser: () => Promise<void>;
 }
 
@@ -17,33 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-
-  // Check if user is logged in on mount and maintain session
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('easysewa_token');
-      const storedUser = localStorage.getItem('easysewa_user');
-      
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-        // Verify token is still valid
-        await refreshUser();
-      }
-    };
-
-    initializeAuth();
-
-    // Set up periodic token refresh (every 30 minutes)
-    const refreshInterval = setInterval(async () => {
-      const storedToken = localStorage.getItem('easysewa_token');
-      if (storedToken) {
-        await refreshUser();
-      }
-    }, 30 * 60 * 1000); // 30 minutes
-
-    return () => clearInterval(refreshInterval);
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   const refreshUser = async () => {
     const storedToken = localStorage.getItem('easysewa_token');
@@ -63,6 +38,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout();
     }
   };
+
+  // Check if user is logged in on mount and maintain session
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const storedToken = localStorage.getItem('easysewa_token');
+      const storedUser = localStorage.getItem('easysewa_user');
+      
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        // Verify token is still valid
+        try {
+          await refreshUser();
+        } catch (error) {
+          // Token invalid, will be cleared by refreshUser
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    // Set up periodic token refresh (every 30 minutes)
+    const refreshInterval = setInterval(async () => {
+      const storedToken = localStorage.getItem('easysewa_token');
+      if (storedToken) {
+        await refreshUser();
+      }
+    }, 30 * 60 * 1000); // 30 minutes
+
+    return () => clearInterval(refreshInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -119,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signup,
     logout,
     isAuthenticated: !!user && !!token,
+    isLoading,
     refreshUser,
   };
 

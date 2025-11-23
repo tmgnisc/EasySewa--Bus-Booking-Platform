@@ -36,7 +36,8 @@ async function request<T>(
 async function requestFormData<T>(
   endpoint: string,
   formData: FormData,
-  token?: string
+  token?: string,
+  method: string = 'POST'
 ): Promise<T> {
   const headers: HeadersInit = {};
 
@@ -45,7 +46,7 @@ async function requestFormData<T>(
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: 'POST',
+    method,
     headers,
     body: formData,
   });

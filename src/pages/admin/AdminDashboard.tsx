@@ -1,33 +1,44 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Shield, Bus, TrendingUp, DollarSign, Clock, Loader2 } from 'lucide-react';
+import { Users, Shield, Bus, TrendingUp, DollarSign, Clock, Loader2, Eye } from 'lucide-react';
 import { formatCurrency } from '@/utils/helpers';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { token } = useAuth();
   const [analytics, setAnalytics] = useState<any>(null);
+  const [buses, setBuses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingBuses, setIsLoadingBuses] = useState(true);
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const fetchData = async () => {
       if (!token) return;
 
       try {
-        const data = await api.admin.getAnalytics(token);
-        setAnalytics(data);
+        // Fetch analytics
+        const analyticsData = await api.admin.getAnalytics(token);
+        setAnalytics(analyticsData);
+        
+        // Fetch buses
+        const busesData = await api.bus.getAll(token);
+        setBuses(busesData.buses || []);
       } catch (error: any) {
-        console.error('Error fetching analytics:', error);
-        toast.error('Failed to load analytics');
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load data');
       } finally {
         setIsLoading(false);
+        setIsLoadingBuses(false);
       }
     };
 
-    fetchAnalytics();
+    fetchData();
   }, [token]);
 
   const stats = analytics ? [
@@ -180,6 +191,61 @@ const AdminDashboard = () => {
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">No recent bookings</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* All Buses */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>All Buses</CardTitle>
+            <Link to="/admin/buses">
+              <Button variant="outline" size="sm">
+                <Eye className="mr-2 h-4 w-4" />
+                View All
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {isLoadingBuses ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : buses.length > 0 ? (
+              <div className="space-y-4">
+                {buses.slice(0, 5).map((bus: any) => (
+                  <div
+                    key={bus.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      {bus.images && bus.images.length > 0 && (
+                        <img
+                          src={bus.images[0]}
+                          alt={bus.busName}
+                          className="w-16 h-16 object-cover rounded-md"
+                        />
+                      )}
+                      <div>
+                        <p className="font-medium">{bus.busName}</p>
+                        <p className="text-sm text-muted-foreground">{bus.busNumber}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary">{bus.busType}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {bus.totalSeats} seats
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Owner</p>
+                      <p className="font-medium text-sm">{bus.owner?.name || 'N/A'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">No buses found</p>
             )}
           </CardContent>
         </Card>
