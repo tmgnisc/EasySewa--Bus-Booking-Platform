@@ -1,14 +1,39 @@
+import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { dummyAnalytics } from '@/data/dummyData';
-import { Users, Shield, Bus, TrendingUp, DollarSign, Clock } from 'lucide-react';
+import { Users, Shield, Bus, TrendingUp, DollarSign, Clock, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/helpers';
+import { useAuth } from '@/context/AuthContext';
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 const AdminDashboard = () => {
-  const stats = [
+  const { token } = useAuth();
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      if (!token) return;
+
+      try {
+        const data = await api.admin.getAnalytics(token);
+        setAnalytics(data);
+      } catch (error: any) {
+        console.error('Error fetching analytics:', error);
+        toast.error('Failed to load analytics');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [token]);
+
+  const stats = analytics ? [
     {
       title: 'Total Revenue',
-      value: formatCurrency(dummyAnalytics.totalRevenue),
+      value: formatCurrency(analytics.totalRevenue || 0),
       icon: DollarSign,
       color: 'text-success',
       bgColor: 'bg-success/10',
@@ -16,7 +41,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Total Users',
-      value: dummyAnalytics.totalUsers,
+      value: analytics.totalUsers || 0,
       icon: Users,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
@@ -24,7 +49,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Bus Owners',
-      value: dummyAnalytics.totalBusOwners,
+      value: analytics.totalBusOwners || 0,
       icon: Shield,
       color: 'text-accent',
       bgColor: 'bg-accent/10',
@@ -32,13 +57,23 @@ const AdminDashboard = () => {
     },
     {
       title: 'Total Buses',
-      value: dummyAnalytics.totalBuses,
+      value: analytics.totalBuses || 0,
       icon: Bus,
       color: 'text-warning',
       bgColor: 'bg-warning/10',
       trend: '+15.3%',
     },
-  ];
+  ] : [];
+
+  if (isLoading) {
+    return (
+      <DashboardLayout requiredRole="admin">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout requiredRole="admin">
@@ -85,7 +120,7 @@ const AdminDashboard = () => {
                   <Clock className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold">{dummyAnalytics.totalBookings}</p>
+                  <p className="text-3xl font-bold">{analytics?.totalBookings || 0}</p>
                   <p className="text-sm text-muted-foreground">All time bookings</p>
                 </div>
               </div>
@@ -99,16 +134,16 @@ const AdminDashboard = () => {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Active Users</span>
-                  <span className="font-medium">{Math.floor(dummyAnalytics.totalUsers * 0.7)}</span>
+                  <span className="text-sm text-muted-foreground">Total Users</span>
+                  <span className="font-medium">{analytics?.totalUsers || 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Active Owners</span>
-                  <span className="font-medium">{Math.floor(dummyAnalytics.totalBusOwners * 0.85)}</span>
+                  <span className="text-sm text-muted-foreground">Bus Owners</span>
+                  <span className="font-medium">{analytics?.totalBusOwners || 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Available Buses</span>
-                  <span className="font-medium">{Math.floor(dummyAnalytics.totalBuses * 0.9)}</span>
+                  <span className="text-sm text-muted-foreground">Total Buses</span>
+                  <span className="font-medium">{analytics?.totalBuses || 0}</span>
                 </div>
               </div>
             </CardContent>
@@ -121,27 +156,31 @@ const AdminDashboard = () => {
             <CardTitle>Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {dummyAnalytics.recentBookings.slice(0, 5).map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{booking.userName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {booking.busName} • {booking.from} → {booking.to}
-                    </p>
+            {analytics?.recentBookings && analytics.recentBookings.length > 0 ? (
+              <div className="space-y-4">
+                {analytics.recentBookings.slice(0, 5).map((booking: any) => (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">{booking.user?.name || booking.userName || 'N/A'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {booking.bus?.busName || booking.busName || 'N/A'} • {booking.schedule?.from || booking.from} → {booking.schedule?.to || booking.to}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-primary">
+                        {formatCurrency(booking.totalAmount || 0)}
+                      </p>
+                      <p className="text-sm text-muted-foreground capitalize">{booking.status || 'N/A'}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-primary">
-                      {formatCurrency(booking.totalAmount)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{booking.status}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">No recent bookings</p>
+            )}
           </CardContent>
         </Card>
       </div>

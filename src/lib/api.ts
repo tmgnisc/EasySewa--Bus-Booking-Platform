@@ -77,6 +77,105 @@ export const api = {
         method: 'GET',
       }),
   },
+  // Admin endpoints
+  admin: {
+    getAnalytics: (token: string) =>
+      request<{
+        totalRevenue: number;
+        totalBookings: number;
+        totalUsers: number;
+        totalBusOwners: number;
+        totalBuses: number;
+        recentBookings: any[];
+      }>('/admin/analytics', {
+        method: 'GET',
+        token,
+      }),
+    getUsers: (token: string, role?: string) =>
+      request<{ users: any[] }>(`/admin/users${role ? `?role=${role}` : ''}`, {
+        method: 'GET',
+        token,
+      }),
+    getOwners: (token: string) =>
+      request<{ owners: any[] }>('/admin/owners', {
+        method: 'GET',
+        token,
+      }),
+    updateOwnerStatus: (token: string, ownerId: string, isApproved: boolean) =>
+      request<{ message: string; owner: any }>(`/admin/owners/${ownerId}/approve`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ isApproved }),
+      }),
+    deleteUser: (token: string, userId: string) =>
+      request<{ message: string }>(`/admin/users/${userId}`, {
+        method: 'DELETE',
+        token,
+      }),
+  },
+  // Bus endpoints
+  bus: {
+    getAll: (token?: string) =>
+      request<{ buses: any[] }>('/buses', {
+        method: 'GET',
+        token,
+      }),
+    getById: (id: string, token?: string) =>
+      request<{ bus: any }>(`/buses/${id}`, {
+        method: 'GET',
+        token,
+      }),
+    getByOwner: (token: string) =>
+      request<{ buses: any[] }>('/buses/owner/list', {
+        method: 'GET',
+        token,
+      }),
+    create: (formData: FormData, token: string) =>
+      requestFormData<{ message: string; bus: any }>('/buses', formData, token),
+    update: (id: string, formData: FormData, token: string) =>
+      requestFormData<{ message: string; bus: any }>(`/buses/${id}`, formData, token, 'PUT'),
+    delete: (id: string, token: string) =>
+      request<{ message: string }>(`/buses/${id}`, {
+        method: 'DELETE',
+        token,
+      }),
+  },
+  // Schedule endpoints
+  schedule: {
+    getAll: (params?: { from?: string; to?: string; date?: string }, token?: string) => {
+      const queryParams = new URLSearchParams();
+      if (params?.from) queryParams.append('from', params.from);
+      if (params?.to) queryParams.append('to', params.to);
+      if (params?.date) queryParams.append('date', params.date);
+      const query = queryParams.toString();
+      return request<{ schedules: any[] }>(`/schedules${query ? `?${query}` : ''}`, {
+        method: 'GET',
+        token,
+      });
+    },
+    getById: (id: string, token?: string) =>
+      request<{ schedule: any }>(`/schedules/${id}`, {
+        method: 'GET',
+        token,
+      }),
+    create: (data: any, token: string) =>
+      request<{ message: string; schedule: any }>('/schedules', {
+        method: 'POST',
+        token,
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: any, token: string) =>
+      request<{ message: string; schedule: any }>(`/schedules/${id}`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string, token: string) =>
+      request<{ message: string }>(`/schedules/${id}`, {
+        method: 'DELETE',
+        token,
+      }),
+  },
 };
 
 export default api;

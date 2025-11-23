@@ -58,12 +58,23 @@ const OwnerDashboard = () => {
           </p>
         </div>
 
-        {user?.isApproved === false && (
+        {user?.isEmailVerified === false && (
           <Card className="border-warning bg-warning/10">
             <CardContent className="pt-6">
-              <p className="font-medium">Your account is pending approval</p>
+              <p className="font-medium">Email Verification Required</p>
               <p className="text-sm text-muted-foreground mt-1">
-                An admin will review your account shortly. You'll be notified once approved.
+                Please verify your email address to continue. Check your inbox for the verification link.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {user?.isEmailVerified && user?.isApproved === false && (
+          <Card className="border-warning bg-warning/10">
+            <CardContent className="pt-6">
+              <p className="font-medium">Account Pending Approval</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your account is under review by admin. You'll receive an email notification once approved.
               </p>
             </CardContent>
           </Card>
