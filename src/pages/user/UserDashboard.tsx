@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { Search, History, Clock, ArrowRight, Loader2 } from 'lucide-react';
+import { History, Clock, ArrowRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatCurrency, formatDate, parseAmenities } from '@/utils/helpers';
 import { api } from '@/lib/api';
@@ -58,28 +58,7 @@ const UserDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card className="border-primary/50 hover:border-primary transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Quick Action</p>
-                  <h3 className="text-lg font-bold mt-1">Search Buses</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Find your next journey</p>
-                  <Link to="/search">
-                    <Button className="mt-4" size="sm">
-                      Search Now
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-                <div className="rounded-full bg-primary/10 p-3">
-                  <Search className="h-6 w-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
@@ -171,13 +150,7 @@ const UserDashboard = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">No upcoming bookings</p>
-                <Link to="/search">
-                  <Button>
-                    <Search className="mr-2 h-4 w-4" />
-                    Search Buses
-                  </Button>
-                </Link>
+                <p className="text-muted-foreground">No upcoming bookings</p>
               </div>
             )}
           </CardContent>
