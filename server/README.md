@@ -33,20 +33,9 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-min-32-chars
 # CORS Configuration
 FRONTEND_URL=http://localhost:5173
 
-# Email Configuration (for OTP and notifications)
-EMAIL_USER=sstream2023@gmail.com
-EMAIL_PASS=ncrdgffgapmjvhgs
 
-# Cloudinary Configuration (for image storage)
-CLOUDINARY_CLOUD_NAME=dafjqlfj7
-CLOUDINARY_API_KEY=357399486623525
-CLOUDINARY_API_SECRET=AVtrjJXjvXpp-pNYo3euX7p1iBs
-CLOUDINARY_UPLOAD_PRESET=finalyearproject
-CLOUDINARY_ASSET_FOLDER=fyp
 
-# Stripe Configuration (for payments)
-STRIPE_SECRET_KEY=sk_test_51Qw2xZGd5XQJoYaEDmnW2AjyqHOjBirZ9fARisAoSBr01flrls7MGvaW8N9yAHeti1VppAIut3StwvqPdUOWG3Pr00eifdgshP
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51Qw2xZGd5XQJoYaEAVWezOChviWUhg4FORS7VZjBwXNYcjwUzctSNpnzLFfsxuLgKQIRzFXGbIAOTwA4BF7a7wOv00k983tPDB
+
 ```
 
 ### 3. Database Setup
